@@ -1,0 +1,7 @@
+name 'zip_file'
+maintainer 'Alex Munoz'
+maintainer_email 'amunoz951@gmail.com'
+license 'all_rights'
+description 'Encapsulates common zip functions'
+long_description 'Encapsulates common zip functions'
+version '0.1.0'
