@@ -8,7 +8,6 @@ property :installer_title, String # SFX only - Title of SFX installer window
 property :installer_executable, String # SFX only - executable to launch after extraction
 property :info_file_path, String # SFX only - Optionally specify custom info_file - examples: https://sevenzip.osdn.jp/chm/cmdline/switches/sfx.htm
 property :delete_after_processing, [TrueClass, FalseClass], default: false
-property :artifacts, Hash, required: true
 
 default_action :create
 
@@ -90,7 +89,6 @@ action :create_if_missing do
     installer_executable new_resource.installer_executable
     info_file_path new_resource.info_file_path
     delete_after_processing new_resource.delete_after_processing
-    artifacts new_resource.artifacts
     not_if { ::File.exist?(archive_path) }
   end
 end
