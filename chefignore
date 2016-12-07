@@ -39,8 +39,6 @@ a.out
 *.so
 *.com
 *.class
-*.dll
-*.exe
 */rdoc/
 
 # Testing #
