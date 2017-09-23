@@ -1,7 +1,14 @@
-name 'zip_file'
+name 'zipr'
 maintainer 'Alex Munoz'
 maintainer_email 'amunoz951@gmail.com'
-license 'all_rights'
+license 'Apache-2.0'
 description 'Encapsulates common zip functions'
 long_description 'Encapsulates common zip functions'
-version '0.1.2'
+source_url 'https://github.com/amunoz951/zipr' if respond_to?(:source_url)
+issues_url 'https://github.com/amunoz951/zipr/issues' if respond_to?(:issues_url)
+chef_version 13
+version '0.2.1'
+
+supports 'windows'
+
+# depends 'seven_zip'
