@@ -1,20 +1,11 @@
 #
-# Cookbook Name:: zip-file
+# Cookbook Name:: zipr
 # Recipe:: default
 #
-# Copyright (c) 2016 The Authors, All Rights Reserved.
-#
-# require 'seven_zip_ruby'
-#
-# File.open('C:/Test/Test.7z') do |file|
-#   SevenZipRuby::Reader.open(file) do |szr|
-#     list = szr.entries
-#     list.each do |entry|
-#       p entry.sha
-#     end
-#     # puts '***********'
-#
-#     # pp list
-#     # => [ "#<EntryInfo: 0, dir, dir/subdir>", "#<EntryInfo: 1, file, dir/file.txt>", ... ]
-#   end
-# end
+
+chef_gem 'seven_zip_ruby' do
+  action :install
+  compile_time true
+  version '1.2.5'
+  source "#{Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/seven_zip_ruby-1.2.5.gem"  
+end
