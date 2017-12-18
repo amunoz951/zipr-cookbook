@@ -18,7 +18,6 @@ default_action :extract
 action :extract do
   require 'digest'
   require 'json'
-  require 'zip'
   extend ZiprHelper
 
   cache_folder = "#{::Chef::Config[:file_cache_path]}/zipr/"
@@ -47,13 +46,14 @@ action :extract do
 
   converge_if_changed do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
+    require 'zip'
+    extend ZiprHelper
 
     directory new_resource.destination_folder do
       action :create
       recursive true
     end
 
-    extend ZiprHelper
     calculated_checksums = extract_archive(new_resource.archive_path,
                                            new_resource.destination_folder,
                                            changed_files: changed_files,
