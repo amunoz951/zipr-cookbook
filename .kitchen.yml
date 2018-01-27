@@ -4,6 +4,7 @@ driver:
 
 provisioner:
   name: chef_zero
+  require_chef_omnibus: 13
 
 verifier:
   name: inspec
@@ -14,6 +15,7 @@ platforms:
       box: opentable/win-2012r2-standard-amd64-nocm
     provisioner:
       require_chef_omnibus: 13
+  - name: centos7
 
 suites:
   - name: default
