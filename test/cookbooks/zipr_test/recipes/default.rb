@@ -9,12 +9,12 @@ test_folder = 'C:/zipr_test'
 directory test_folder do
   action :create
   recursive true
-end
+end.run_action(:create)
 
 %w(1 2 3 4 5).each do |file_number|
   file "#{test_folder}/file#{file_number}.txt" do
     content file_number
-  end
+  end.run_action(:create)
 end
 
 zipr_archive "#{test_folder}/test_archive.zip" do

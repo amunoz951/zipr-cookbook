@@ -34,6 +34,7 @@ action :extract do
 
   converge_if_changed do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
+    include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
     require 'zip'
 
     directory new_resource.destination_folder do
@@ -74,9 +75,10 @@ action :create do
                                                                       new_resource.target_files,
                                                                       new_resource.exclude_files,
                                                                       new_resource.exclude_unless_missing)
-  return if !changed_files.nil? && changed_files.empty?
+  return if changed_files.empty?
 
   converge_if_changed do
+    include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
     require 'zip'
     calculated_checksums = add_to_archive(new_resource.archive_path,
                                           new_resource.source_folder,
