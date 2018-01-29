@@ -1,9 +1,11 @@
 require 'spec_helper'
 
-describe 'zip-file::default' do
-  # Serverspec examples can be found at
-  # http://serverspec.org/resource_types.html
-  it 'does something' do
-    skip 'Replace this with meaningful tests'
+describe file('C:/zipr_test/test_archive.zip') do
+  it { should exist }
+end
+
+%w(file1 file5).each do |file_name|
+  describe file("C:/zipr_test/extract_test/#{file_name}.txt") do
+    it { should exist }
   end
 end

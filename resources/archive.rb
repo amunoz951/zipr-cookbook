@@ -8,6 +8,7 @@ property :exclude_files, [String, Array], default: [] # Array of relative_paths 
 # Compression properties
 property :archive_type, Symbol, default: :zip # :zip, :seven_zip
 property :target_files, [String, Array], default: [] # 7-zip wildcards allowed in windows
+property :source_folder, String
 
 # Extraction properties
 property :destination_folder, String
@@ -19,35 +20,21 @@ action :extract do
   require 'digest'
   require 'json'
   extend ZiprHelper
+  standardize_properties(new_resource)
 
-  cache_folder = "#{::Chef::Config[:file_cache_path]}/zipr/"
-  checksums_folder = "#{cache_folder}/archive_checksums"
+  checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
   filepath_checksum = ::Digest::SHA256.hexdigest(new_resource.archive_path)[0..10]
-  checksum_file = "#{checksums_folder}/#{archive_name}_#{filepath_checksum}"
-  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String)
-  new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String)
-  changed_files = nil # changed_files must be nil if the checksum file does not yet exist
-  archive_checksums = {}
-
-  if ::File.exist?(checksum_file)
-    changed_files = []
-    file_content = ::File.read(checksum_file)
-    archive_checksums = JSON.parse(file_content)
-    archive_checksums.each do |compressed_file, compressed_file_checksum|
-      next if new_resource.exclude_files.grep(/#{compressed_file}/i)
-      next if ::File.exist?("#{new_resource.destination_folder}/#{compressed_file}") &&
-              (::Digest::SHA256.file("#{new_resource.destination_folder}/#{compressed_file}").hexdigest == compressed_file_checksum ||
-              new_resource.exclude_unless_missing.grep(/#{compressed_file}/i))
-      changed_files.push(compressed_file)
-    end
-    return if changed_files.empty?
-  end
+  checksum_file = "#{checksums_folder}/#{archive_name}_#{filepath_checksum}.json"
+  changed_files, archive_checksums = changed_files_for_extract(checksum_file,
+                                                               new_resource.destination_folder,
+                                                               new_resource.exclude_files,
+                                                               new_resource.exclude_unless_missing)
+  return if !changed_files.nil? && changed_files.empty?
 
   converge_if_changed do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
     require 'zip'
-    extend ZiprHelper
 
     directory new_resource.destination_folder do
       action :create
@@ -56,9 +43,7 @@ action :extract do
 
     calculated_checksums = extract_archive(new_resource.archive_path,
                                            new_resource.destination_folder,
-                                           changed_files: changed_files,
-                                           exclude_files: new_resource.exclude_files,
-                                           exclude_unless_missing: new_resource.exclude_unless_missing,
+                                           changed_files,
                                            archive_checksums: archive_checksums,
                                            archive_type: new_resource.archive_type)
 
@@ -75,25 +60,40 @@ action :extract do
 end
 
 action :create do
-  raise 'Unsupported OS platform!' unless node['platform'] == 'windows'
+  require 'digest'
+  require 'json'
   extend ZiprHelper
-  include_recipe 'seven_zip::default'
-  zip_types = { zip: 'tzip', seven_zip: 't7z', sfx: 't7z' }
-  file_list = new_resource.target_files.is_a?(String) ? "\"#{new_resource.target_files}\"" : "\"#{new_resource.target_files.join('" "')}\""
-  file_list = '' if file_list == '""'
-  exclude_list = new_resource.exclude_files.is_a?(String) ? "-x!\"#{new_resource.exclude_files}\"" : "-x!\"#{new_resource.exclude_files.join('" -x!"')}\""
-  exclude_list = '' if exclude_list == '-x!""'
+  standardize_properties(new_resource)
 
-  execute "Create #{new_resource.archive_type} archive #{new_resource.archive_path}" do
-    action :run
-    command lazy { "\"#{seven_zip_exe}\" a -#{zip_types[new_resource.archive_type]} \"#{new_resource.archive_path}\" #{file_list} #{exclude_list}" }
-  end
+  checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
+  archive_name = ::File.basename(new_resource.archive_path)
+  filepath_checksum = ::Digest::SHA256.hexdigest(new_resource.archive_path)[0..10]
+  checksum_file = "#{checksums_folder}/#{archive_name}_#{filepath_checksum}.json"
+  changed_files, archive_checksums = changed_files_for_add_to_archive(checksum_file,
+                                                                      new_resource.source_folder,
+                                                                      new_resource.target_files,
+                                                                      new_resource.exclude_files,
+                                                                      new_resource.exclude_unless_missing)
+  return if !changed_files.nil? && changed_files.empty?
 
-  # TODO: validate this works with 7zip wildcards
-  if new_resource.delete_after_processing
-    new_resource.target_files.each do |source_file|
-      file source_file do
-        action :delete
+  converge_if_changed do
+    require 'zip'
+    calculated_checksums = add_to_archive(new_resource.archive_path,
+                                          new_resource.source_folder,
+                                          changed_files,
+                                          archive_checksums: archive_checksums,
+                                          archive_type: new_resource.archive_type)
+
+    zipr_checksums_file checksum_file do
+      archive_checksums calculated_checksums
+    end
+
+    # TODO: validate this works with 7zip wildcards
+    if new_resource.delete_after_processing
+      new_resource.changed_files.each do |changed_file|
+        file changed_file do
+          action :delete
+        end
       end
     end
   end
@@ -106,7 +106,14 @@ action :create_if_missing do
     archive_type new_resource.archive_type
     exclude_files new_resource.exclude_files
     target_files new_resource.target_files
+    source_folder new_resource.source_folder
     delete_after_processing new_resource.delete_after_processing
     not_if { ::File.exist?(new_resource.archive_path) }
   end
+end
+
+def standardize_properties(new_resource)
+  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String)
+  new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String)
+  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String)
 end

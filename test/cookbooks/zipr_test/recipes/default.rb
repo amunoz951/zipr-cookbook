@@ -20,16 +20,27 @@ end
 zipr_archive "#{test_folder}/test_archive.zip" do
   action :create
   archive_type :zip
+  source_folder test_folder
   target_files Dir.glob("#{test_folder}/*.txt")
   exclude_files 'file4.txt'
 end
 
-zipr_archive "#{test_folder}/test_archive2.7z" do
-  action :create
-  archive_type :seven_zip
+# This should not create the archive as it already should exist
+zipr_archive "#{test_folder}/test_archive.zip" do
+  action :create_if_missing
+  archive_type :zip
+  source_folder test_folder
   target_files Dir.glob("#{test_folder}/*.txt")
-  exclude_files ['file2.txt', 'file4.txt']
 end
+
+# TODO: complete 7z implementation via seven_zip_ruby gem
+# zipr_archive "#{test_folder}/test_archive2.7z" do
+#   action :create
+#   archive_type :seven_zip
+#   source_folder test_folder
+#   target_files Dir.glob("#{test_folder}/*.txt")
+#   exclude_files ['file2.txt', 'file4.txt']
+# end
 
 zipr_archive "#{test_folder}/test_archive.zip" do
   action :extract
@@ -38,10 +49,11 @@ zipr_archive "#{test_folder}/test_archive.zip" do
   exclude_unless_missing 'file5.txt'
 end
 
-zipr_archive "#{test_folder}/test_archive2.7z" do
-  action :extract
-  destination_folder "#{test_folder}/extract_test"
-  exclude_files 'file3.txt'
-  exclude_unless_missing 'file5.txt'
-  delete_after_processing true
-end
+# TODO: complete 7z implementation via seven_zip_ruby gem
+# zipr_archive "#{test_folder}/test_archive2.7z" do
+#   action :extract
+#   destination_folder "#{test_folder}/extract_test"
+#   exclude_files 'file3.txt'
+#   exclude_unless_missing 'file5.txt'
+#   delete_after_processing true
+# end
