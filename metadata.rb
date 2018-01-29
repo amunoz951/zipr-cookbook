@@ -6,8 +6,8 @@ description 'Encapsulates common zip functions'
 long_description 'Encapsulates common zip functions'
 source_url 'https://github.com/amunoz951/zipr' if respond_to?(:source_url)
 issues_url 'https://github.com/amunoz951/zipr/issues' if respond_to?(:issues_url)
-chef_version 13
-version '0.3.2'
+chef_version >= 12
+version '1.0.0'
 
 supports 'windows'
 supports 'centos'
