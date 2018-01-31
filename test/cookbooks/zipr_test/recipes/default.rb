@@ -7,12 +7,13 @@ Chef::Log.info 'Creating test files'
 test_folder = 'C:/zipr_test'
 
 directory test_folder do
-  action :create
+  action :nothing
   recursive true
 end.run_action(:create)
 
 %w(1 2 3 4 5).each do |file_number|
   file "#{test_folder}/file#{file_number}.txt" do
+    action :nothing
     content file_number
   end.run_action(:create)
 end
