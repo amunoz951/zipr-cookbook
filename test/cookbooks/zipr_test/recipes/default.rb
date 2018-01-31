@@ -6,7 +6,7 @@
 Chef::Log.info 'Creating test files'
 test_folder = 'C:/zipr_test'
 
-directory test_folder do
+directory "#{test_folder}/nested" do
   action :nothing
   recursive true
 end.run_action(:create)
@@ -18,20 +18,35 @@ end.run_action(:create)
   end.run_action(:create)
 end
 
+file "#{test_folder}/nested/file6.txt" do
+  action :nothing
+  content '6'
+end.run_action(:create)
+
 zipr_archive "#{test_folder}/test_archive.zip" do
   action :create
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/*.txt")
-  exclude_files 'file4.txt'
+  exclude_files ['file4.txt', 'test_archive.zip']
 end
 
-# This should not create the archive as it already should exist
+# This should not create the archive as it should already exist and the action is :create_if_missing
 zipr_archive "#{test_folder}/test_archive.zip" do
   action :create_if_missing
   archive_type :zip
   source_folder test_folder
-  target_files Dir.glob("#{test_folder}/*.txt")
+  target_files Dir.glob("#{test_folder}/**/*")
+end
+
+# This should add nested folder
+zipr_archive 'Add nested folder' do
+  action :create
+  archive_path "#{test_folder}/test_archive.zip"
+  archive_type :zip
+  source_folder test_folder
+  target_files Dir.glob("#{test_folder}/**/*")
+  exclude_files ['file4.txt', 'test_archive.zip']
 end
 
 # TODO: complete 7z implementation via seven_zip_ruby gem
