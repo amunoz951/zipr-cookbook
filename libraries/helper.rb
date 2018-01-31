@@ -131,23 +131,21 @@ module ZiprHelper
 
   def changed_files_for_add_to_archive(checksum_file, source_folder, target_files, exclude_files, exclude_unless_missing)
     archive_checksums = {}
+    changed_files = []
     if ::File.exist?(checksum_file)
-      changed_files = []
       file_content = ::File.read(checksum_file)
       archive_checksums = JSON.parse(file_content)
-      target_files.each do |target_search|
-        source_files = Dir.glob(target_search)
-        source_files.each do |source_file|
-          next if exclude_files.any? { |e| e.casecmp(source_file) == 0 }
-          relative_path = source_file.sub(source_folder, '').reverse.chomp('/').reverse
-          next if archive_checksums[relative_path] == Digest::SHA256.file(source_file).hexdigest
-          next if exclude_files.any? { |f| f.match(/#{relative_path}/i) }
-          next if exclude_unless_missing.any? { |f| f.match(/#{relative_path}/i) } && archive_checksums[relative_path]
-          changed_files.push(source_file)
-        end
+    end
+    target_files.each do |target_search|
+      source_files = Dir.glob(target_search)
+      source_files.each do |source_file|
+        next if exclude_files.any? { |e| e.casecmp(source_file) == 0 }
+        relative_path = source_file.sub(source_folder, '').reverse.chomp('/').reverse
+        next if archive_checksums[relative_path] == Digest::SHA256.file(source_file).hexdigest
+        next if exclude_files.any? { |f| f.match(/#{relative_path}/i) }
+        next if exclude_unless_missing.any? { |f| f.match(/#{relative_path}/i) } && archive_checksums[relative_path]
+        changed_files.push(source_file)
       end
-    else
-      changed_files = target_files
     end
     [changed_files, archive_checksums]
   end
