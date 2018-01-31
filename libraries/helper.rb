@@ -96,7 +96,8 @@ module ZiprHelper
         relative_path.slice!(source_folder.tr('\\', '/'))
         relative_path = relative_path.reverse.chomp('/').reverse
         zip_archive.add(relative_path, source_file) { :overwrite }
-        puts "adding #{source_file}"
+        Chef::Log.info("Adding #{source_file}...")
+        next if ::File.directory?(source_file)
         archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
         archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
       end
