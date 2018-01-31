@@ -7,7 +7,7 @@ property :exclude_files, [String, Array], default: [] # Array of relative_paths 
 
 # Compression properties
 property :archive_type, Symbol, default: :zip # :zip, :seven_zip
-property :target_files, [String, Array], default: [] # 7-zip wildcards allowed in windows
+property :target_files, [String, Array], default: [] # Dir.glob wildcards allowed
 property :source_folder, String, default: ''
 
 # Extraction properties

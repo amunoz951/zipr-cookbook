@@ -76,6 +76,7 @@ module ZiprHelper
 
   def add_to_archive(archive_path, source_folder, source_files, archive_checksums: nil, archive_type: :zip)
     return nil if source_files.nil?
+    FileUtils.mkdir_p(::File.dirname(archive_path))
     case archive_type
     when :zip
       add_to_zip(archive_path, source_folder, source_files, archive_checksums: archive_checksums)
@@ -118,7 +119,6 @@ module ZiprHelper
 
           puts "Compressing #{source_file}..."
           puts "relative path: #{relative_path}"
-          FileUtils.mkdir_p(::File.dirname(relative_path))
           Chef::Log.info("Compressing #{source_file}...")
           seven_zip_archive.add_file(source_file, relative_path)
           archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
