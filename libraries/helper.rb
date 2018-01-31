@@ -95,9 +95,12 @@ module ZiprHelper
         relative_path = source_file.tr('\\', '/')
         relative_path.slice!(source_folder.tr('\\', '/'))
         relative_path = relative_path.reverse.chomp('/').reverse
+        Chef::Log.info("Compressing #{relative_path}...")
+        if ::File.directory?(source_file)
+          zip_archive.mkdir(relative_path) unless zip_archive.find_entry(relative_path)
+          next
+        end
         zip_archive.add(relative_path, source_file) { :overwrite }
-        Chef::Log.info("Adding #{source_file}...")
-        next if ::File.directory?(source_file)
         archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
         archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
       end
@@ -116,11 +119,13 @@ module ZiprHelper
         Chef::Log.info("Compressing to #{archive_path}...")
         source_files.each do |source_file|
           relative_path = source_file.tr('\\', '/')
-          relative_path.slice!(source_folder.tr('\\', '/')).reverse.chomp('/').reverse
-
-          puts "Compressing #{source_file}..."
-          puts "relative path: #{relative_path}"
-          Chef::Log.info("Compressing #{source_file}...")
+          relative_path.slice!(source_folder.tr('\\', '/'))
+          relative_path = relative_path.reverse.chomp('/').reverse
+          Chef::Log.info("Compressing #{relative_path}...")
+          if ::File.directory?(source_file)
+            zip_archive.mkdir(relative_path) unless zip_archive.find_entry(relative_path)
+            next
+          end
           seven_zip_archive.add_file(source_file, relative_path)
           archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
           archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
@@ -142,7 +147,7 @@ module ZiprHelper
       source_files.each do |source_file|
         next if exclude_files.any? { |e| e.casecmp(source_file) == 0 }
         relative_path = source_file.sub(source_folder, '').reverse.chomp('/').reverse
-        next if archive_checksums[relative_path] == Digest::SHA256.file(source_file).hexdigest
+        next if ::File.file?(source_file) && archive_checksums[relative_path] == Digest::SHA256.file(source_file).hexdigest
         next if exclude_files.any? { |f| f.match(/#{relative_path}/i) }
         next if exclude_unless_missing.any? { |f| f.match(/#{relative_path}/i) } && archive_checksums[relative_path]
         changed_files.push(source_file)
