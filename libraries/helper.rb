@@ -19,6 +19,7 @@ module ZiprHelper
         next unless changed_files.nil? || changed_files.include?(archive_item.name)
         if archive_item.ftype == :directory
           FileUtils.mkdir_p(destination_path)
+          archive_checksums[archive_item.name.tr('\\', '/')] = 'directory'
           next
         end
         FileUtils.mkdir_p(::File.dirname(destination_path))
@@ -27,7 +28,7 @@ module ZiprHelper
         archive_checksums[archive_item.name.tr('\\', '/')] = Digest::SHA256.file(destination_path).hexdigest
       end
     end
-    archive_checksums
+    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
   end
 
   def extract_seven_zip(archive_path, destination_folder, changed_files, archive_checksums: nil)
@@ -44,6 +45,7 @@ module ZiprHelper
           next unless changed_files.nil? || changed_files.include?(archive_item.name)
           if archive_item.ftype == :directory
             FileUtils.mkdir_p(destination_path)
+            archive_checksums[archive_item.name.tr('\\', '/')] = 'directory'
             next
           end
           FileUtils.mkdir_p(::File.dirname(destination_path))
@@ -53,7 +55,7 @@ module ZiprHelper
         end
       end
     end
-    archive_checksums
+    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
   end
 
   def changed_files_for_extract(checksum_file, destination_folder, exclude_files, exclude_unless_missing)
@@ -67,7 +69,8 @@ module ZiprHelper
         next if exclude_files.any? { |e| e.casecmp(compressed_file) == 0 }
         destination_path = "#{destination_folder}/#{compressed_file}"
         next if ::File.exist?(destination_path) && exclude_unless_missing.any? { |e| e.casecmp(compressed_file) == 0 }
-        next if ::File.exist?(destination_path) && ::Digest::SHA256.file(destination_path).hexdigest == compressed_file_checksum
+        next if ::File.file?(destination_path) && ::Digest::SHA256.file(destination_path).hexdigest == compressed_file_checksum
+        next if ::File.directory?(destination_path) && compressed_file_checksum == 'directory'
         changed_files.push(compressed_file)
       end
     end
@@ -98,14 +101,15 @@ module ZiprHelper
         Chef::Log.info("Compressing #{relative_path}...")
         if ::File.directory?(source_file)
           zip_archive.mkdir(relative_path) unless zip_archive.find_entry(relative_path)
-          next
+          archive_item_checksum = 'directory'
+        else
+          zip_archive.add(relative_path, source_file) { :overwrite }
+          archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
         end
-        zip_archive.add(relative_path, source_file) { :overwrite }
-        archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
         archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
       end
     end
-    archive_checksums
+    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
   end
 
   def add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: nil)
@@ -123,16 +127,17 @@ module ZiprHelper
           relative_path = relative_path.reverse.chomp('/').reverse
           Chef::Log.info("Compressing #{relative_path}...")
           if ::File.directory?(source_file)
-            zip_archive.mkdir(relative_path) unless zip_archive.find_entry(relative_path)
-            next
+            seven_zip_archive.mkdir(relative_path) unless seven_zip_archive.find_entry(relative_path)
+            archive_item_checksum = 'directory'
+          else
+            seven_zip_archive.add_file(source_file, relative_path)
+            archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
           end
-          seven_zip_archive.add_file(source_file, relative_path)
-          archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
           archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
         end
       end
     end
-    archive_checksums
+    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
   end
 
   def changed_files_for_add_to_archive(checksum_file, source_folder, target_files, exclude_files, exclude_unless_missing)
@@ -145,11 +150,11 @@ module ZiprHelper
     target_files.each do |target_search|
       source_files = Dir.glob(target_search)
       source_files.each do |source_file|
-        next if exclude_files.any? { |e| e.casecmp(source_file) == 0 }
-        relative_path = source_file.sub(source_folder, '').reverse.chomp('/').reverse
+        relative_path = slice_source_folder(source_folder, source_file)
+        next if exclude_files.any? { |e| e.casecmp(relative_path) == 0 || e.casecmp(source_file) == 0 }
         next if ::File.file?(source_file) && archive_checksums[relative_path] == Digest::SHA256.file(source_file).hexdigest
-        next if exclude_files.any? { |f| f.match(/#{relative_path}/i) }
-        next if exclude_unless_missing.any? { |f| f.match(/#{relative_path}/i) } && archive_checksums[relative_path]
+        next if ::File.directory?(source_file) && archive_checksums[relative_path] == 'directory'
+        next if archive_checksums[relative_path] && exclude_unless_missing.any? { |e| e.casecmp(relative_path) == 0 || e.casecmp(source_file) == 0 }
         changed_files.push(source_file)
       end
     end
@@ -176,5 +181,24 @@ module ZiprHelper
     true
   rescue
     false
+  end
+
+  # returns results of all files found in the array of files, including files found by wildcard, as relative paths.
+  def flattened_paths(source_folder, files)
+    result = []
+    files.each do |entry|
+      standardized_entry = "#{source_folder.tr('\\', '/')}/#{slice_source_folder(source_folder, entry)}"
+      files_found = Dir.glob(standardized_entry)
+      if files_found.empty?
+        result.push(entry)
+      else
+        result += files_found.map { |e| slice_source_folder(source_folder, e) }
+      end
+    end
+    result
+  end
+
+  def slice_source_folder(source_folder, entry)
+    entry.tr('\\', '/').sub(source_folder.tr('\\', '/'), '').reverse.chomp('/').reverse
   end
 end

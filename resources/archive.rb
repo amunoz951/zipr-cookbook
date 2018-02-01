@@ -12,20 +12,21 @@ property :source_folder, String, default: ''
 
 # Extraction properties
 property :destination_folder, String
-property :exclude_unless_missing, [String, Array], default: [] # Array of relative_paths for files that should not be extracted if they already exist
+property :exclude_unless_missing, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
 
 default_action :extract
+
+Chef::Resource.send(:include, ZiprHelper)
 
 action :extract do
   require 'digest'
   require 'json'
-  extend ZiprHelper
   standardize_properties(new_resource)
 
   checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
-  filepath_checksum = ::Digest::SHA256.hexdigest(new_resource.archive_path)[0..10]
-  checksum_file = "#{checksums_folder}/#{archive_name}_#{filepath_checksum}.json"
+  archive_checksum = ::File.exist?(new_resource.archive_path) ? ::Digest::SHA256.file(new_resource.archive_path).hexdigest : ''
+  checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
   changed_files, archive_checksums = changed_files_for_extract(checksum_file,
                                                                new_resource.destination_folder,
                                                                new_resource.exclude_files,
@@ -42,11 +43,13 @@ action :extract do
       recursive true
     end
 
-    calculated_checksums = extract_archive(new_resource.archive_path,
+    calculated_checksums, archive_checksum = extract_archive(new_resource.archive_path,
                                            new_resource.destination_folder,
                                            changed_files,
                                            archive_checksums: archive_checksums,
                                            archive_type: new_resource.archive_type)
+
+    checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums
@@ -63,13 +66,12 @@ end
 action :create do
   require 'digest'
   require 'json'
-  extend ZiprHelper
   standardize_properties(new_resource)
 
   checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
-  filepath_checksum = ::Digest::SHA256.hexdigest(new_resource.archive_path)[0..10]
-  checksum_file = "#{checksums_folder}/#{archive_name}_#{filepath_checksum}.json"
+  archive_checksum = ::File.exist?(new_resource.archive_path) ? ::Digest::SHA256.file(new_resource.archive_path).hexdigest : ''
+  checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
   changed_files, archive_checksums = changed_files_for_add_to_archive(checksum_file,
                                                                       new_resource.source_folder,
                                                                       new_resource.target_files,
@@ -80,11 +82,13 @@ action :create do
   converge_if_changed do
     include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
     require 'zip'
-    calculated_checksums = add_to_archive(new_resource.archive_path,
+    calculated_checksums, archive_checksum = add_to_archive(new_resource.archive_path,
                                           new_resource.source_folder,
                                           changed_files,
                                           archive_checksums: archive_checksums,
                                           archive_type: new_resource.archive_type)
+
+    checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums
@@ -118,4 +122,6 @@ def standardize_properties(new_resource)
   new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String)
   new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String)
   new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String)
+  new_resource.exclude_files = flattened_paths(new_resource.source_folder, new_resource.exclude_files)
+  new_resource.exclude_unless_missing = flattened_paths(new_resource.source_folder, new_resource.exclude_unless_missing)
 end
