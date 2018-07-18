@@ -44,10 +44,10 @@ action :extract do
     end
 
     calculated_checksums, archive_checksum = extract_archive(new_resource.archive_path,
-                                           new_resource.destination_folder,
-                                           changed_files,
-                                           archive_checksums: archive_checksums,
-                                           archive_type: new_resource.archive_type)
+                                                             new_resource.destination_folder,
+                                                             changed_files,
+                                                             archive_checksums: archive_checksums,
+                                                             archive_type: new_resource.archive_type)
 
     checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
 
