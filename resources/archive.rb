@@ -22,6 +22,7 @@ action :extract do
   require 'digest'
   require 'json'
   standardize_properties(new_resource)
+  raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
 
   checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
