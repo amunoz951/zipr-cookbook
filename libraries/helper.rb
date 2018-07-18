@@ -148,7 +148,7 @@ module ZiprHelper
       archive_checksums = JSON.parse(file_content)
     end
     target_files.each do |target_search|
-      source_files = Dir.glob(target_search)
+      source_files = Dir.glob(prepend_source_folder(source_folder, target_search))
       source_files.each do |source_file|
         relative_path = slice_source_folder(source_folder, source_file)
         next if exclude_files.any? { |e| e.casecmp(relative_path) == 0 || e.casecmp(source_file) == 0 }
@@ -196,6 +196,11 @@ module ZiprHelper
       end
     end
     result
+  end
+
+  def prepend_source_folder(source_folder, entry)
+    return entry.tr('\\', '/') if source_folder.nil? || source_folder.empty? || entry.start_with?(source_folder.tr('\\', '/'))
+    "#{source_folder.tr('\\', '/')}/#{entry.tr('\\', '/')}"
   end
 
   def slice_source_folder(source_folder, entry)
