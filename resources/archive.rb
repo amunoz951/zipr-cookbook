@@ -26,9 +26,10 @@ action :extract do
 
   checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
-  archive_checksum = ::File.exist?(new_resource.archive_path) ? ::Digest::SHA256.file(new_resource.archive_path).hexdigest : ''
-  checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
-  changed_files, archive_checksums = changed_files_for_extract(checksum_file,
+  archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
+  checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
+  changed_files, archive_checksums = changed_files_for_extract(new_resource.archive_path,
+                                                               checksum_file,
                                                                new_resource.destination_folder,
                                                                new_resource.exclude_files,
                                                                new_resource.exclude_unless_missing)
@@ -44,13 +45,11 @@ action :extract do
       recursive true
     end
 
-    calculated_checksums, archive_checksum = extract_archive(new_resource.archive_path,
-                                                             new_resource.destination_folder,
-                                                             changed_files,
-                                                             archive_checksums: archive_checksums,
-                                                             archive_type: new_resource.archive_type)
-
-    checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
+    calculated_checksums = extract_archive(new_resource.archive_path,
+                                           new_resource.destination_folder,
+                                           changed_files,
+                                           archive_checksums: archive_checksums,
+                                           archive_type: new_resource.archive_type)
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums

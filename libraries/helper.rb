@@ -12,6 +12,7 @@ module ZiprHelper
 
   def extract_zip(archive_path, destination_folder, changed_files, archive_checksums: nil)
     archive_checksums = {} if archive_checksums.nil?
+    archive_checksums['archive_checksum'] = Digest::SHA256.file(archive_path).hexdigest
     Zip::File.open(archive_path) do |archive_items|
       Chef::Log.info("Extracting to #{destination_folder}...")
       archive_items.each do |archive_item|
@@ -28,7 +29,7 @@ module ZiprHelper
         archive_checksums[archive_item.name.tr('\\', '/')] = Digest::SHA256.file(destination_path).hexdigest
       end
     end
-    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
+    archive_checksums
   end
 
   def extract_seven_zip(archive_path, destination_folder, changed_files, archive_checksums: nil)
@@ -37,6 +38,7 @@ module ZiprHelper
     require 'seven_zip_ruby'
 
     archive_checksums = {} if archive_checksums.nil?
+    archive_checksums['archive_checksum'] = Digest::SHA256.file(archive_path).hexdigest
     ::File.open(archive_path, 'rb') do |archive_file|
       SevenZipRuby::Reader.open(archive_file) do |archive_items|
         Chef::Log.info("Extracting to #{destination_folder}...")
@@ -55,17 +57,20 @@ module ZiprHelper
         end
       end
     end
-    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
+    archive_checksums
   end
 
-  def changed_files_for_extract(checksum_file, destination_folder, exclude_files, exclude_unless_missing)
+  def changed_files_for_extract(archive_path, checksum_file, destination_folder, exclude_files, exclude_unless_missing)
     changed_files = nil # changed_files must be nil if the checksum file does not yet exist
     archive_checksums = {}
     if ::File.exist?(checksum_file)
       changed_files = []
       file_content = ::File.read(checksum_file)
       archive_checksums = JSON.parse(file_content)
+      return [nil, {}] unless !::File.exist?(archive_path) ||
+                              archive_checksums['archive_checksum'] == Digest::SHA256.file(archive_path).hexdigest # If the archive has changed, extract again
       archive_checksums.each do |compressed_file, compressed_file_checksum|
+        next if compressed_file == 'archive_checksum'
         next if exclude_files.any? { |e| e.casecmp(compressed_file) == 0 }
         destination_path = "#{destination_folder}/#{compressed_file}"
         next if ::File.exist?(destination_path) && exclude_unless_missing.any? { |e| e.casecmp(compressed_file) == 0 }
