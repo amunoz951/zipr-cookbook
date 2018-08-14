@@ -5,8 +5,7 @@ property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
 
 # Compression properties
-property :target_file, String, default: ''
-property :target_files, [String, Array], default: lazy { [target_file] } # 7zip specific wildcards allowed for windows
+property :target_files, [String, Array], default: [] # 7zip specific wildcards allowed for windows
 
 # SFX only properties
 property :installer_title, String # Title of SFX installer window
@@ -16,8 +15,9 @@ property :info_file_path, String # Optionally specify custom info_file - example
 default_action :create
 
 action :create do
+  standardize_properties(new_resource)
   sfx_folder = "#{::Chef::Config[:file_cache_path]}/SFX_Installers"
-  sevenzip_folder = "#{::Chef::Config[:file_cache_path]}/7-zip" # calculate correct path in windows
+  sfx_module = "#{::Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/7zS.sfx".tr('/', '\\')
 
   FileUtils.mkdir_p(sfx_folder) unless ::File.exist?(sfx_folder)
 
@@ -26,6 +26,7 @@ action :create do
   zipr_archive temp_archive_path do
     action :create
     delete_after_processing new_resource.delete_after_processing
+    source_folder sfx_folder
     archive_type :seven_zip
     target_files new_resource.target_files
   end
@@ -41,12 +42,14 @@ action :create do
         ;!@InstallEnd@!
       EOS
     end
+  else
+    info_file = new_resource.info_file_path
   end
 
   execute "Create SFX Installer: #{new_resource.archive_path.tr('/', '\\')}" do
     action :run
     command <<-EOS
-      copy /b "#{sevenzip_folder.tr('/', '\\')}\\7zS.sfx" + "#{new_resource.info_file_path.tr('/', '\\')}" + "#{temp_archive_path.tr('/', '\\')}" "#{new_resource.archive_path.tr('/', '\\')}"
+      copy /b "#{sfx_module}" + "#{info_file.tr('/', '\\')}" + "#{temp_archive_path.tr('/', '\\')}" "#{new_resource.archive_path.tr('/', '\\')}"
     EOS
   end
 
@@ -54,7 +57,7 @@ action :create do
     action :delete
   end
 
-  # TODO: validate this works with 7zip wildcards
+  # TODO: validate this works with wildcards
   if new_resource.delete_after_processing
     new_resource.target_files.each do |source_file|
       file source_file do
@@ -77,4 +80,8 @@ action :create_if_missing do
     delete_after_processing new_resource.delete_after_processing
     not_if { ::File.exist?(new_resource.archive_path) }
   end
+end
+
+def standardize_properties(new_resource)
+  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String)
 end
