@@ -96,7 +96,7 @@ action :create do
 
     # TODO: validate this works with 7zip wildcards
     if new_resource.delete_after_processing
-      new_resource.changed_files.each do |changed_file|
+      changed_files.each do |changed_file|
         file changed_file do
           action :delete
         end
