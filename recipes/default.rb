@@ -8,7 +8,6 @@ chef_gem 'seven_zip_ruby' do
   compile_time true
   version '1.2.5'
   source "#{Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/seven_zip_ruby-1.2.5.gem"
-  not_if { true } # TODO: fix gem issue
 end
 
 chef_gem 'rubyzip' do

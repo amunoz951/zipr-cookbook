@@ -118,7 +118,6 @@ module ZiprHelper
   end
 
   def add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: nil)
-    raise 'extract_seven_zip not yet implemented!'
     include_recipe 'zipr::default'
     require 'seven_zip_ruby'
 
@@ -130,12 +129,13 @@ module ZiprHelper
           relative_path = source_file.tr('\\', '/')
           relative_path.slice!(source_folder.tr('\\', '/'))
           relative_path = relative_path.reverse.chomp('/').reverse
+          options = { as: relative_path }
           Chef::Log.info("Compressing #{relative_path}...")
           if ::File.directory?(source_file)
-            seven_zip_archive.mkdir(relative_path) unless seven_zip_archive.find_entry(relative_path)
+            seven_zip_archive.mkdir(relative_path)
             archive_item_checksum = 'directory'
           else
-            seven_zip_archive.add_file(source_file, relative_path)
+            seven_zip_archive.add_file(source_file, options)
             archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
           end
           archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum

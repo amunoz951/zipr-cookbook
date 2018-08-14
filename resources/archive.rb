@@ -94,7 +94,7 @@ action :create do
       archive_checksums calculated_checksums
     end
 
-    # TODO: validate this works with 7zip wildcards
+    # TODO: validate this works with wildcards
     if new_resource.delete_after_processing
       changed_files.each do |changed_file|
         file changed_file do
