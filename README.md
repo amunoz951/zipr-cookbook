@@ -1,6 +1,6 @@
 # zipr Cookbook
 
-[![Cookbook Version](https://img.shields.io/badge/cookbook-1.1.0-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
+[![Cookbook Version](https://img.shields.io/badge/cookbook-1.1.1-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
 
 Provides resources and helper methods for extracting and compressing files
 

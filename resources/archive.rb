@@ -20,11 +20,9 @@ Chef::Resource.send(:include, ZiprHelper)
 
 action :extract do
   require 'digest'
-  require 'json'
   standardize_properties(new_resource)
   raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
 
-  checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
   checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
@@ -65,14 +63,9 @@ end
 
 action :create do
   require 'digest'
-  require 'json'
   standardize_properties(new_resource)
 
-  checksums_folder = "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
-  archive_name = ::File.basename(new_resource.archive_path)
-  archive_checksum = ::File.exist?(new_resource.archive_path) ? ::Digest::SHA256.file(new_resource.archive_path).hexdigest : ''
-  checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
-  changed_files, archive_checksums = changed_files_for_add_to_archive(checksum_file,
+  changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
                                                                       new_resource.source_folder,
                                                                       new_resource.target_files,
                                                                       new_resource.exclude_files,
@@ -82,13 +75,13 @@ action :create do
   converge_if_changed do
     include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
     require 'zip'
-    calculated_checksums, archive_checksum = add_to_archive(new_resource.archive_path,
+    calculated_checksums = add_to_archive(new_resource.archive_path,
                                           new_resource.source_folder,
                                           changed_files,
                                           archive_checksums: archive_checksums,
                                           archive_type: new_resource.archive_type)
 
-    checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_checksum}.json"
+    checksum_file = "#{checksums_folder}/#{::File.basename(new_resource.archive_path)}_#{Digest::SHA256.file(new_resource.archive_path).hexdigest}.json"
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums

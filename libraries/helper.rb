@@ -1,3 +1,5 @@
+require 'json'
+
 module ZiprHelper
   def extract_archive(archive_path, destination_folder, changed_files, archive_checksums: nil, archive_type: :zip)
     case archive_type
@@ -67,8 +69,7 @@ module ZiprHelper
       changed_files = []
       file_content = ::File.read(checksum_file)
       archive_checksums = JSON.parse(file_content)
-      return [nil, {}] unless !::File.exist?(archive_path) ||
-                              archive_checksums['archive_checksum'] == Digest::SHA256.file(archive_path).hexdigest # If the archive has changed, extract again
+      return [nil, {}] if ::File.exist?(archive_path) && archive_checksums['archive_checksum'] != Digest::SHA256.file(archive_path).hexdigest # If the archive has changed, return and extract again
       archive_checksums.each do |compressed_file, compressed_file_checksum|
         next if compressed_file == 'archive_checksum'
         next if exclude_files.any? { |e| e.casecmp(compressed_file) == 0 }
@@ -85,14 +86,16 @@ module ZiprHelper
   def add_to_archive(archive_path, source_folder, source_files, archive_checksums: nil, archive_type: :zip)
     return nil if source_files.nil?
     FileUtils.mkdir_p(::File.dirname(archive_path))
-    case archive_type
-    when :zip
-      add_to_zip(archive_path, source_folder, source_files, archive_checksums: archive_checksums)
-    when :seven_zip
-      add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: archive_checksums)
-    else
-      raise "':#{archive_type}' is not a supported archive type!"
-    end
+    calculated_checksums = case archive_type
+                           when :zip
+                             add_to_zip(archive_path, source_folder, source_files, archive_checksums: archive_checksums)
+                           when :seven_zip
+                             add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: archive_checksums)
+                           else
+                             raise "':#{archive_type}' is not a supported archive type!"
+                           end
+    raise "Failed to create archive at #{archive_path}!" unless ::File.file?(archive_path)
+    calculated_checksums
   end
 
   def add_to_zip(archive_path, source_folder, source_files, archive_checksums: nil)
@@ -111,10 +114,10 @@ module ZiprHelper
           zip_archive.add(relative_path, source_file) { :overwrite }
           archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
         end
-        archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
+        archive_checksums[relative_path] = archive_item_checksum
       end
     end
-    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
+    archive_checksums
   end
 
   def add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: nil)
@@ -138,14 +141,18 @@ module ZiprHelper
             seven_zip_archive.add_file(source_file, options)
             archive_item_checksum = Digest::SHA256.file(source_file).hexdigest
           end
-          archive_checksums[relative_path.tr('\\', '/')] = archive_item_checksum
+          archive_checksums[relative_path] = archive_item_checksum
         end
       end
     end
-    [archive_checksums, Digest::SHA256.file(archive_path).hexdigest]
+    archive_checksums
   end
 
-  def changed_files_for_add_to_archive(checksum_file, source_folder, target_files, exclude_files, exclude_unless_missing)
+  def changed_files_for_add_to_archive(archive_path, source_folder, target_files, exclude_files, exclude_unless_missing)
+    archive_checksum = ::File.exist?(archive_path) ? ::Digest::SHA256.file(archive_path).hexdigest : ''
+    checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{::File.basename(archive_path)}_#{archive_checksum}.json"
+    FileUtils.rm(checksum_file) if ::File.file?(checksum_file) && !::File.file?(archive_path) # Start over if the archive is missing
+
     archive_checksums = {}
     changed_files = []
     if ::File.exist?(checksum_file)
@@ -204,11 +211,15 @@ module ZiprHelper
   end
 
   def prepend_source_folder(source_folder, entry)
-    return entry.tr('\\', '/') if source_folder.nil? || source_folder.empty? || entry.start_with?(source_folder.tr('\\', '/'))
+    return entry.tr('\\', '/') if source_folder.nil? || source_folder.empty? || entry.tr('\\', '/').start_with?(source_folder.tr('\\', '/'))
     "#{source_folder.tr('\\', '/')}/#{entry.tr('\\', '/')}"
   end
 
   def slice_source_folder(source_folder, entry)
     entry.tr('\\', '/').sub(source_folder.tr('\\', '/'), '').reverse.chomp('/').reverse
+  end
+
+  def checksums_folder
+    "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
   end
 end

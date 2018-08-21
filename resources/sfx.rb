@@ -3,9 +3,11 @@ resource_name :zipr_sfx
 # Common properties
 property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
+property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
 
 # Compression properties
 property :target_files, [String, Array], default: [] # 7zip specific wildcards allowed for windows
+property :source_folder, String, default: lazy { |r| ::File.dirname(r.target_files.first) }
 
 # SFX only properties
 property :installer_title, String # Title of SFX installer window
@@ -16,53 +18,56 @@ default_action :create
 
 action :create do
   standardize_properties(new_resource)
-  sfx_folder = "#{::Chef::Config[:file_cache_path]}/SFX_Installers"
-  sfx_module = "#{::Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/7zS.sfx".tr('/', '\\')
 
-  FileUtils.mkdir_p(sfx_folder) unless ::File.exist?(sfx_folder)
+  changed_files, _archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
+                                                                      new_resource.source_folder,
+                                                                      new_resource.target_files,
+                                                                      new_resource.exclude_files,
+                                                                      [])
+  return if changed_files.empty?
 
-  temp_archive_path = "#{sfx_folder}\\sfx_temp_archive.7z"
+  converge_if_changed do
+    sfx_folder = "#{::Chef::Config[:file_cache_path]}/zipr/SFX"
+    sfx_module = "#{::Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/7zS.sfx".tr('/', '\\')
 
-  zipr_archive temp_archive_path do
-    action :create
-    delete_after_processing new_resource.delete_after_processing
-    source_folder sfx_folder
-    archive_type :seven_zip
-    target_files new_resource.target_files
-  end
+    FileUtils.mkdir_p(sfx_folder) unless ::File.exist?(sfx_folder)
 
-  if new_resource.info_file_path.nil?
-    info_file = "#{sfx_folder}/sfx_info.txt"
-    file info_file do
+    temp_archive_path = "#{sfx_folder}\\sfx_temp_archive.7z"
+
+    zipr_archive temp_archive_path do
       action :create
-      content <<-EOS.strip
-        ;!@Install@!UTF-8!
-        Title="#{new_resource.installer_title}"
-        RunProgram="#{new_resource.installer_executable}"
-        ;!@InstallEnd@!
+      delete_after_processing new_resource.delete_after_processing
+      source_folder new_resource.source_folder
+      exclude_files new_resource.exclude_files
+      archive_type :seven_zip
+      target_files new_resource.target_files
+    end
+
+    if new_resource.info_file_path.nil?
+      info_file = "#{sfx_folder}/sfx_info.txt"
+      file info_file do
+        action :create
+        content <<-EOS.strip
+          ;!@Install@!UTF-8!
+          Title="#{new_resource.installer_title}"
+          RunProgram="#{new_resource.installer_executable}"
+          ;!@InstallEnd@!
+        EOS
+      end
+    else
+      info_file = new_resource.info_file_path
+    end
+
+    execute "Create SFX Installer: #{new_resource.archive_path.tr('/', '\\')}" do
+      action :run
+      command <<-EOS
+        copy /b "#{sfx_module}" + "#{info_file.tr('/', '\\')}" + "#{temp_archive_path.tr('/', '\\')}" "#{new_resource.archive_path.tr('/', '\\')}"
       EOS
     end
-  else
-    info_file = new_resource.info_file_path
-  end
 
-  execute "Create SFX Installer: #{new_resource.archive_path.tr('/', '\\')}" do
-    action :run
-    command <<-EOS
-      copy /b "#{sfx_module}" + "#{info_file.tr('/', '\\')}" + "#{temp_archive_path.tr('/', '\\')}" "#{new_resource.archive_path.tr('/', '\\')}"
-    EOS
-  end
-
-  file temp_archive_path do
-    action :delete
-  end
-
-  # TODO: validate this works with wildcards
-  if new_resource.delete_after_processing
-    new_resource.target_files.each do |source_file|
-      file source_file do
-        action :delete
-      end
+    directory sfx_folder do
+      action :delete
+      recursive true
     end
   end
 end
