@@ -19,7 +19,9 @@ default_action :create
 action :create do
   standardize_properties(new_resource)
 
-  changed_files, _archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
+  checksum_file = create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
+  changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
+                                                                      checksum_file,
                                                                       new_resource.source_folder,
                                                                       new_resource.target_files,
                                                                       new_resource.exclude_files,
@@ -39,6 +41,7 @@ action :create do
       delete_after_processing new_resource.delete_after_processing
       source_folder new_resource.source_folder
       exclude_files new_resource.exclude_files
+      checksum_file checksum_file
       archive_type :seven_zip
       target_files new_resource.target_files
     end

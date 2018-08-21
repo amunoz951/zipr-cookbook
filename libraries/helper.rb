@@ -95,6 +95,7 @@ module ZiprHelper
                              raise "':#{archive_type}' is not a supported archive type!"
                            end
     raise "Failed to create archive at #{archive_path}!" unless ::File.file?(archive_path)
+    calculated_checksums['archive_checksum'] = ::Digest::SHA256.file(archive_path).hexdigest
     calculated_checksums
   end
 
@@ -148,9 +149,8 @@ module ZiprHelper
     archive_checksums
   end
 
-  def changed_files_for_add_to_archive(archive_path, source_folder, target_files, exclude_files, exclude_unless_missing)
-    archive_checksum = ::File.exist?(archive_path) ? ::Digest::SHA256.file(archive_path).hexdigest : ''
-    checksum_file = archive_checksum.empty? ? '' : "#{checksums_folder}/#{::File.basename(archive_path)}_#{archive_checksum}.json"
+  def changed_files_for_add_to_archive(archive_path, checksum_file, source_folder, target_files, exclude_files, exclude_unless_missing)
+    checksum_file ||= create_action_checksum_file(archive_path, source_files)
     FileUtils.rm(checksum_file) if ::File.file?(checksum_file) && !::File.file?(archive_path) # Start over if the archive is missing
 
     archive_checksums = {}
@@ -221,5 +221,9 @@ module ZiprHelper
 
   def checksums_folder
     "#{::Chef::Config[:file_cache_path]}/zipr/archive_checksums"
+  end
+
+  def create_action_checksum_file(archive_path, source_files)
+    "#{checksums_folder}/#{::File.basename(archive_path)}_#{Digest::SHA256.hexdigest(archive_path + source_files.join)}.json"
   end
 end

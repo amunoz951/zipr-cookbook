@@ -3,6 +3,7 @@ resource_name :zipr_archive
 # Common properties
 property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
+property :checksum_file, [String, nil], default: nil # Specify a custom checksum file path
 property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
 
 # Compression properties
@@ -25,7 +26,7 @@ action :extract do
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
-  checksum_file = "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
+  checksum_file = new_resource.checksum_file || "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
   changed_files, archive_checksums = changed_files_for_extract(new_resource.archive_path,
                                                                checksum_file,
                                                                new_resource.destination_folder,
@@ -66,6 +67,7 @@ action :create do
   standardize_properties(new_resource)
 
   changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
+                                                                      new_resource.checksum_file,
                                                                       new_resource.source_folder,
                                                                       new_resource.target_files,
                                                                       new_resource.exclude_files,
@@ -81,7 +83,7 @@ action :create do
                                           archive_checksums: archive_checksums,
                                           archive_type: new_resource.archive_type)
 
-    checksum_file = "#{checksums_folder}/#{::File.basename(new_resource.archive_path)}_#{Digest::SHA256.file(new_resource.archive_path).hexdigest}.json"
+    checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.source_files)
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums
