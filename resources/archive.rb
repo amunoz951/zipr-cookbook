@@ -83,7 +83,7 @@ action :create do
                                           archive_checksums: archive_checksums,
                                           archive_type: new_resource.archive_type)
 
-    checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.source_files)
+    checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums

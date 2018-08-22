@@ -150,7 +150,7 @@ module ZiprHelper
   end
 
   def changed_files_for_add_to_archive(archive_path, checksum_file, source_folder, target_files, exclude_files, exclude_unless_missing)
-    checksum_file ||= create_action_checksum_file(archive_path, source_files)
+    checksum_file ||= create_action_checksum_file(archive_path, target_files)
     FileUtils.rm(checksum_file) if ::File.file?(checksum_file) && !::File.file?(archive_path) # Start over if the archive is missing
 
     archive_checksums = {}
