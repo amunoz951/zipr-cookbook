@@ -15,7 +15,6 @@ Provides resources and helper methods for extracting and compressing files
 - [Usage](#usage)
 
   - [default](#default) Default recipe
-  - [mod_*](#mod_) Recipes for installing individual IIS modules (extensions).
 
 - [Alternatives](#alternative-cookbooks)
 
