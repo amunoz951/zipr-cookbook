@@ -3,7 +3,7 @@ resource_name :zipr_sfx
 property :archive_path, String, name_property: true # desired SFX path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files after processing
 property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
-property :target_files, [String, Array], default: [] # 7zip specific wildcards allowed for windows
+property :target_files, [String, Array], required: true # 7zip specific wildcards allowed for windows
 property :source_folder, String, default: lazy { |r| ::File.dirname(r.target_files.first) }
 property :installer_title, String # Title of SFX installer window; required if info_file_path is not specified
 property :installer_executable, String # executable to launch after extraction; required if info_file_path is not specified
@@ -51,6 +51,8 @@ action :create do
 
     if new_resource.info_file_path.nil?
       info_file = "#{sfx_folder}/sfx_info.txt"
+      raise 'installer_title is a required field when info_file_path is not specified!' if new_resource.installer_title.nil?
+      raise 'installer_executable is a required field when info_file_path is not specified!' if new_resource.installer_executable.nil?
       file info_file do
         action :create
         content <<-EOS.strip

@@ -75,6 +75,8 @@ end
 
 zipr_sfx "#{test_folder}/test_sfx.exe" do
   action :create
+  installer_title 'Test Installer'
+  installer_executable 'msiexec /quiet /package testpackage.msi'
   target_files "#{test_folder}/extract_7z_test/**/*"
   source_folder "#{test_folder}/extract_7z_test"
 end
