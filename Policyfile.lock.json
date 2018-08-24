@@ -1,5 +1,5 @@
 {
-  "revision_id": "ab66aca5fdf469111c4377e4fa6124f62b10785f1be79af3859f20bcae9a8970",
+  "revision_id": "508302d75d0f005d65bae8ed564b66eebf8a067fdd0f7519be752a6126a2222f",
   "name": "kitchen_zipr",
   "run_list": [
     "recipe[zipr_test::default]"
@@ -54,14 +54,14 @@
     },
     "zipr": {
       "version": "1.1.2",
-      "identifier": "5189bcac12043efaa77825a5e02204c65eb608a8",
-      "dotted_decimal_identifier": "22950916547281982.70552878647205922.5250039023784",
+      "identifier": "0eeae2db5847df3091a0011ec9d7236eccf4a7cf",
+      "dotted_decimal_identifier": "4198909737453535.13670915281701335.38958791960527",
       "source": ".",
       "cache_key": null,
       "scm_info": {
         "scm": "git",
         "remote": "https://github.com/amunoz951/zipr.git",
-        "revision": "2134810e9d8709bc68228ba07888eda692c65e2f",
+        "revision": "ced932b3829ba7a2f6ad1f86cffa52bcc296eb4f",
         "working_tree_clean": false,
         "published": true,
         "synchronized_remote_branches": [
@@ -81,7 +81,7 @@
       "scm_info": {
         "scm": "git",
         "remote": "https://github.com/amunoz951/zipr.git",
-        "revision": "2134810e9d8709bc68228ba07888eda692c65e2f",
+        "revision": "ced932b3829ba7a2f6ad1f86cffa52bcc296eb4f",
         "working_tree_clean": false,
         "published": true,
         "synchronized_remote_branches": [

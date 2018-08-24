@@ -1,6 +1,6 @@
 # zipr Cookbook
 
-[![Cookbook Version](https://img.shields.io/badge/cookbook-1.1.1-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
+[![Cookbook Version](https://img.shields.io/badge/cookbook-2.0.0-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
 
 Provides resources and helper methods for extracting and compressing files
 
@@ -30,7 +30,8 @@ Provides resources and helper methods for extracting and compressing files
 
 ### Chef
 
-- Chef 13+
+- Chef 12+
+- If chef-client version is <= 13.4, pin windows cookbook to a version <= 4.3.4 if using windows
 
 ### Cookbooks
 
@@ -67,23 +68,23 @@ Creates or extracts an archive
 #### Examples
 
 ```ruby
-# Add foo.html to default documents, and add '.dmg' as mime type extension at root level
-zipr_archive 'C:/zipr_test/test_archive.zip' do
-  destination_folder 'C:/zipr_test/extract_test'
+# Extract files from test_archive.zip
+zipr_archive '~/zipr_test/test_archive.zip' do
+  destination_folder '~/zipr_test/extract_test'
   exclude_files ['file1.txt', 'subfolder/file2.txt']
   exclude_unless_missing 'app.config'
   delete_after_processing true
   action :extract
-  notifies :create, 'remote_file[C:/zipr_test/test_archive.zip]', :before
+  notifies :create, 'remote_file[~/zipr_test/test_archive.zip]', :before
 end
 ```
 
 ```ruby
-# Create the archive test_archive.7z from the files returned by Dir.glob('C:/zipr_test/**/*') excluding C:/zipr_test/file1.txt
-zipr_archive "C:/zipr_test/test_archive.7z" do
+# Create the archive test_archive.7z from the files returned by Dir.glob('~/zipr_test/**/*') excluding ~/zipr_test/file1.txt
+zipr_archive "~/zipr_test/test_archive.7z" do
   archive_type :seven_zip
-  target_files Dir.glob('C:/zipr_test/**/*')
-  exclude_files 'C:/zipr_test/file1.txt'
+  target_files Dir.glob('~/zipr_test/**/*')
+  exclude_files '~/zipr_test/file1.txt'
   action :create
 end
 ```
@@ -92,7 +93,7 @@ end
 
 ### default recipe
 
-Installs seven_zip gem
+Installs seven_zip_ruby and rubyzip gems
 
 ## License and Author
 
