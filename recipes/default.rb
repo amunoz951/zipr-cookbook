@@ -6,7 +6,7 @@
 build_essential 'Install required dev binaries' do
   action :install
   compile_time true
-  not_if node['platform'] == 'windows'
+  not_if { node['platform'] == 'windows' }
 end
 
 chef_gem 'seven_zip_ruby' do
