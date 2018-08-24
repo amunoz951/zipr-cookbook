@@ -1,57 +1,71 @@
 {
-  "revision_id": "7e9945f68611b6d556f512de350c754621ec8f7804193a3382b28afa1efca0c8",
+  "revision_id": "ab66aca5fdf469111c4377e4fa6124f62b10785f1be79af3859f20bcae9a8970",
   "name": "kitchen_zipr",
   "run_list": [
     "recipe[zipr_test::default]"
   ],
+  "included_policy_locks": [
+
+  ],
   "cookbook_locks": {
-    "ohai": {
-      "version": "5.2.0",
-      "identifier": "31667e457ea2295ec2c43d24708b5b3edaea387e",
-      "dotted_decimal_identifier": "13904966376661545.26672795905978507.100325518882942",
-      "cache_key": "ohai-5.2.0-supermarket.chef.io",
-      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/ohai/versions/5.2.0/download",
+    "build-essential": {
+      "version": "8.1.1",
+      "identifier": "2576e10b52babc28fbebc105c582a62d6a9b18a6",
+      "dotted_decimal_identifier": "10545283067984572.11535989042693506.182713992288422",
+      "cache_key": "build-essential-8.1.1-supermarket.chef.io",
+      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/build-essential/versions/8.1.1/download",
       "source_options": {
-        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/ohai/versions/5.2.0/download",
-        "version": "5.2.0"
+        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/build-essential/versions/8.1.1/download",
+        "version": "8.1.1"
+      }
+    },
+    "mingw": {
+      "version": "2.1.0",
+      "identifier": "9f5d572c671e4a85015941a73f9d8f54820af19e",
+      "dotted_decimal_identifier": "44857150285487690.37437654767714205.157593121780126",
+      "cache_key": "mingw-2.1.0-supermarket.chef.io",
+      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/mingw/versions/2.1.0/download",
+      "source_options": {
+        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/mingw/versions/2.1.0/download",
+        "version": "2.1.0"
       }
     },
     "seven_zip": {
-      "version": "2.0.2",
-      "identifier": "8e6795446cfa8e0a4a09cef4d5d35eb2d522a24d",
-      "dotted_decimal_identifier": "40083337488693902.2896155754419667.104122173006413",
-      "cache_key": "seven_zip-2.0.2-supermarket.chef.io",
-      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/seven_zip/versions/2.0.2/download",
+      "version": "3.0.0",
+      "identifier": "91ab727ea5b817801e0799cc82a03910a806f91b",
+      "dotted_decimal_identifier": "41002379862456343.36061815012885152.62743701289243",
+      "cache_key": "seven_zip-3.0.0-supermarket.chef.io",
+      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/seven_zip/versions/3.0.0/download",
       "source_options": {
-        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/seven_zip/versions/2.0.2/download",
-        "version": "2.0.2"
+        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/seven_zip/versions/3.0.0/download",
+        "version": "3.0.0"
       }
     },
     "windows": {
-      "version": "3.1.3",
-      "identifier": "d28ddeaba824872ca3ff774bcc02a65b434b6d5f",
-      "dotted_decimal_identifier": "59265732611417223.12565216588712962.182910901251423",
-      "cache_key": "windows-3.1.3-supermarket.chef.io",
-      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/windows/versions/3.1.3/download",
+      "version": "5.0.0",
+      "identifier": "37f0e934b1962a4988fac5ef8946b224f5c3a937",
+      "dotted_decimal_identifier": "15746008121185834.20698283943889222.195871811807543",
+      "cache_key": "windows-5.0.0-supermarket.chef.io",
+      "origin": "https://supermarket.chef.io:443/api/v1/cookbooks/windows/versions/5.0.0/download",
       "source_options": {
-        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/windows/versions/3.1.3/download",
-        "version": "3.1.3"
+        "artifactserver": "https://supermarket.chef.io:443/api/v1/cookbooks/windows/versions/5.0.0/download",
+        "version": "5.0.0"
       }
     },
     "zipr": {
-      "version": "0.2.2",
-      "identifier": "b527864299421639bec027547012f7088a3b0ab9",
-      "dotted_decimal_identifier": "50990428381069846.16253806175350802.271616050924217",
+      "version": "1.1.2",
+      "identifier": "5189bcac12043efaa77825a5e02204c65eb608a8",
+      "dotted_decimal_identifier": "22950916547281982.70552878647205922.5250039023784",
       "source": ".",
       "cache_key": null,
       "scm_info": {
         "scm": "git",
         "remote": "https://github.com/amunoz951/zipr.git",
-        "revision": "c360f5cfcaad95a4345bdbd4a0be2573dbdbc932",
+        "revision": "2134810e9d8709bc68228ba07888eda692c65e2f",
         "working_tree_clean": false,
         "published": true,
         "synchronized_remote_branches": [
-          "origin/master"
+          "origin/add_dependency-build_essentials"
         ]
       },
       "source_options": {
@@ -59,19 +73,19 @@
       }
     },
     "zipr_test": {
-      "version": "0.1.0",
-      "identifier": "f4029b1b37f72355e319255dd976451338140a05",
-      "dotted_decimal_identifier": "68682759517239075.24175070161000822.75948847532549",
+      "version": "0.2.0",
+      "identifier": "bee01fae20e78665eb3a34d7b0a039b22e6ce4ba",
+      "dotted_decimal_identifier": "53726672245024646.28687607874957472.63437445850298",
       "source": "test/cookbooks/zipr_test",
       "cache_key": null,
       "scm_info": {
         "scm": "git",
         "remote": "https://github.com/amunoz951/zipr.git",
-        "revision": "c360f5cfcaad95a4345bdbd4a0be2573dbdbc932",
+        "revision": "2134810e9d8709bc68228ba07888eda692c65e2f",
         "working_tree_clean": false,
         "published": true,
         "synchronized_remote_branches": [
-          "origin/master"
+          "origin/add_dependency-build_essentials"
         ]
       },
       "source_options": {
@@ -88,16 +102,20 @@
   "solution_dependencies": {
     "Policyfile": [
       [
-        "ohai",
-        "= 5.2.0"
+        "build-essential",
+        "= 8.1.1"
+      ],
+      [
+        "mingw",
+        "= 2.1.0"
       ],
       [
         "seven_zip",
-        "= 2.0.2"
+        "= 3.0.0"
       ],
       [
         "windows",
-        "= 3.1.3"
+        "= 5.0.0"
       ],
       [
         "zipr",
@@ -109,28 +127,38 @@
       ]
     ],
     "dependencies": {
-      "ohai (5.2.0)": [
-
-      ],
-      "seven_zip (2.0.2)": [
-        [
-          "windows",
-          ">= 1.2.2"
-        ]
-      ],
-      "windows (3.1.3)": [
-        [
-          "ohai",
-          ">= 4.0.0"
-        ]
-      ],
-      "zipr (0.2.2)": [
+      "build-essential (8.1.1)": [
         [
           "seven_zip",
-          "~> 2.0"
+          ">= 0.0.0"
+        ],
+        [
+          "mingw",
+          ">= 1.1.0"
         ]
       ],
-      "zipr_test (0.1.0)": [
+      "mingw (2.1.0)": [
+        [
+          "seven_zip",
+          ">= 0.0.0"
+        ]
+      ],
+      "seven_zip (3.0.0)": [
+        [
+          "windows",
+          ">= 0.0.0"
+        ]
+      ],
+      "windows (5.0.0)": [
+
+      ],
+      "zipr (1.1.2)": [
+        [
+          "build-essential",
+          ">= 0.0.0"
+        ]
+      ],
+      "zipr_test (0.2.0)": [
         [
           "zipr",
           ">= 0.0.0"

@@ -1,10 +1,11 @@
 #
-# Cookbook:: ncr_vault_test
+# Cookbook:: zipr_test
 # Recipe:: default
 #
-# Copyright:: 2017, The Authors, All Rights Reserved.
+# Copyright:: 2018, Alex Munoz, All Rights Reserved.
+
 Chef::Log.info 'Creating test files'
-test_folder = 'C:/zipr_test'
+test_folder = node['platform'] == 'windows' ? 'C:/zipr_test' : '/zipr_test'
 
 directory "#{test_folder}/nested" do
   action :nothing
@@ -18,6 +19,7 @@ end.run_action(:create)
   end.run_action(:create)
 end
 
+# rubyzip based resources
 zipr_archive "#{test_folder}/test_archive.zip" do
   action :create
   archive_type :zip
@@ -26,9 +28,10 @@ zipr_archive "#{test_folder}/test_archive.zip" do
   exclude_files 'file4.txt'
 end
 
-# This should not create the archive as it should already exist and the action is :create_if_missing
-zipr_archive "#{test_folder}/test_archive.zip" do
+# This should not create the archive as it should already exist and the action is :create_if_missing - file4.txt should not be added to zip
+zipr_archive "Create if missing: #{test_folder}/test_archive.zip" do
   action :create_if_missing
+  archive_path "#{test_folder}/test_archive.zip"
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/**/*")
@@ -44,27 +47,34 @@ zipr_archive 'Add nested folder' do
   exclude_files ['file4.txt', 'test_archive*.*', 'extract_test', 'extract_test/**/*', 'nested/file8.txt']
 end
 
-# TODO: complete 7z implementation via seven_zip_ruby gem
-# zipr_archive "#{test_folder}/test_archive2.7z" do
-#   action :create
-#   archive_type :seven_zip
-#   source_folder test_folder
-#   target_files Dir.glob("#{test_folder}/*.txt")
-#   exclude_files ['file2.txt', 'file4.txt']
-# end
-
-zipr_archive "#{test_folder}/test_archive.zip" do
+zipr_archive "Extract #{test_folder}/test_archive.zip" do
   action :extract
+  archive_path "#{test_folder}/test_archive.zip"
   destination_folder "#{test_folder}/extract_test"
   exclude_files ['file2.txt', 'file3.txt', '**/file6.txt']
   exclude_unless_missing 'file5.txt'
 end
 
-# TODO: complete 7z implementation via seven_zip_ruby gem
-# zipr_archive "#{test_folder}/test_archive2.7z" do
-#   action :extract
-#   destination_folder "#{test_folder}/extract_test"
-#   exclude_files 'file3.txt'
-#   exclude_unless_missing 'file5.txt'
-#   delete_after_processing true
-# end
+# seven_zip based resources
+zipr_archive "#{test_folder}/test_archive2.7z" do
+  action :create
+  archive_type :seven_zip
+  source_folder test_folder
+  target_files Dir.glob("#{test_folder}/*.txt") + ["#{test_folder}/nested/file7.txt"]
+  exclude_files ['file2.txt', 'file4.txt']
+end
+
+zipr_archive "Extract #{test_folder}/test_archive2.7z" do
+  action :extract
+  archive_path "#{test_folder}/test_archive2.7z"
+  destination_folder "#{test_folder}/extract_7z_test"
+  exclude_files 'file3.txt'
+  exclude_unless_missing 'file5.txt'
+  delete_after_processing true
+end
+
+zipr_sfx "#{test_folder}/test_sfx.exe" do
+  action :create
+  target_files "#{test_folder}/extract_7z_test/**/*"
+  source_folder "#{test_folder}/extract_7z_test"
+end
