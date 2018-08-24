@@ -5,39 +5,46 @@ property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
 property :checksum_file, [String, nil], default: nil # Specify a custom checksum file path
 property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
+property :exclude_unless_missing, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
 
 # Compression properties
-property :archive_type, Symbol, default: :zip # :zip, :seven_zip
+property :archive_type, Symbol, default: lazy { |r| r.archive_path[-3..-1] =~ /.7z/i ? :seven_zip : :zip } # :zip, :seven_zip
 property :target_files, [String, Array], default: [] # Dir.glob wildcards allowed
 property :source_folder, String, default: ''
 
 # Extraction properties
 property :destination_folder, String
-property :exclude_unless_missing, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
+property :password, [String, nil], default: nil # Password for archive
 
 default_action :extract
 
-Chef::Resource.send(:include, ZiprHelper)
-
 action :extract do
   require 'digest'
+  new_resource.sensitive = true unless new_resource.password.nil?
   standardize_properties(new_resource)
   raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
   checksum_file = new_resource.checksum_file || "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
+  options = {
+              exclude_files: new_resource.exclude_files,
+              exclude_unless_missing: new_resource.exclude_unless_missing,
+              overwrite: true,
+              password: new_resource.password,
+              archive_type: new_resource.archive_type
+            }
+
   changed_files, archive_checksums = changed_files_for_extract(new_resource.archive_path,
                                                                checksum_file,
                                                                new_resource.destination_folder,
-                                                               new_resource.exclude_files,
-                                                               new_resource.exclude_unless_missing)
+                                                               options)
   return if !changed_files.nil? && changed_files.empty?
+
+  include_recipe 'zipr::default'
 
   converge_if_changed do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
-    include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
-    require 'zip'
 
     directory new_resource.destination_folder do
       action :create
@@ -47,8 +54,8 @@ action :extract do
     calculated_checksums = extract_archive(new_resource.archive_path,
                                            new_resource.destination_folder,
                                            changed_files,
-                                           archive_checksums: archive_checksums,
-                                           archive_type: new_resource.archive_type)
+                                           options,
+                                           archive_checksums: archive_checksums)
 
     zipr_checksums_file checksum_file do
       archive_checksums calculated_checksums
@@ -63,25 +70,28 @@ action :extract do
 end
 
 action :create do
-  require 'digest'
   standardize_properties(new_resource)
+  options = {
+              exclude_files: new_resource.exclude_files,
+              exclude_unless_missing: new_resource.exclude_unless_missing,
+              archive_type: new_resource.archive_type
+            }
 
   changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
                                                                       new_resource.checksum_file,
                                                                       new_resource.source_folder,
                                                                       new_resource.target_files,
-                                                                      new_resource.exclude_files,
-                                                                      new_resource.exclude_unless_missing)
+                                                                      options)
   return if changed_files.empty?
 
+  include_recipe 'zipr::default'
+
   converge_if_changed do
-    include_recipe 'zipr::default' if Gem::Version.new(Chef::VERSION) < Gem::Version.new('13.0.0')
-    require 'zip'
     calculated_checksums = add_to_archive(new_resource.archive_path,
                                           new_resource.source_folder,
                                           changed_files,
-                                          archive_checksums: archive_checksums,
-                                          archive_type: new_resource.archive_type)
+                                          options,
+                                          archive_checksums: archive_checksums)
 
     checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
@@ -89,7 +99,6 @@ action :create do
       archive_checksums calculated_checksums
     end
 
-    # TODO: validate this works with wildcards
     if new_resource.delete_after_processing
       changed_files.each do |changed_file|
         file changed_file do
