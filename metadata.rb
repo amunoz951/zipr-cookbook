@@ -7,7 +7,7 @@ long_description 'Encapsulates common zip functions'
 source_url 'https://github.com/amunoz951/zipr'
 issues_url 'https://github.com/amunoz951/zipr/issues'
 chef_version '>= 12'
-version '2.0.1'
+version '2.0.2'
 
 supports 'windows'
 supports 'centos'
