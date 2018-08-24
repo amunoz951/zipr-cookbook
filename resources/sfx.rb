@@ -3,7 +3,7 @@ resource_name :zipr_sfx
 property :archive_path, String, name_property: true # desired SFX path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files after processing
 property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
-property :target_files, [String, Array], required: true # 7zip specific wildcards allowed for windows
+property :target_files, [String, Array], required: true # Dir.glob style wildcards allowed
 property :source_folder, String, default: lazy { |r| ::File.dirname(r.target_files.first) }
 property :installer_title, String # Title of SFX installer window; required if info_file_path is not specified
 property :installer_executable, String # executable to launch after extraction; required if info_file_path is not specified
