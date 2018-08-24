@@ -3,6 +3,8 @@
 # Recipe:: default
 #
 
+include_recipe 'build-essential::default' unless node['platform'] == 'windows'
+
 chef_gem 'seven_zip_ruby' do
   action :install
   compile_time true
