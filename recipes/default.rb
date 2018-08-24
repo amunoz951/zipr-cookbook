@@ -3,7 +3,11 @@
 # Recipe:: default
 #
 
-include_recipe 'build-essential::default' unless node['platform'] == 'windows'
+build_essential 'Install required dev binaries' do
+  action :install
+  compile_time true
+  not_if node['platform'] == 'windows'
+end
 
 chef_gem 'seven_zip_ruby' do
   action :install
