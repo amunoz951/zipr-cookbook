@@ -6,6 +6,7 @@ Berksfile.lock
 \#*#
 .*.sw[a-z]
 *.un~
+*.sh
 
 # Bundler
 Gemfile.lock
@@ -14,3 +15,4 @@ bin/*
 
 .kitchen/
 .kitchen.local.yml
+Policyfile.lock.json

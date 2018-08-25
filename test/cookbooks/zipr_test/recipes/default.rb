@@ -35,6 +35,7 @@ zipr_archive "Create if missing: #{test_folder}/test_archive.zip" do
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/**/*")
+  exclude_files "*.exe"
 end
 
 # This should add nested folder to the existing archive created earlier
@@ -44,7 +45,7 @@ zipr_archive 'Add nested folder' do
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/**/*")
-  exclude_files ['file4.txt', 'test_archive*.*', 'extract_test', 'extract_test/**/*', 'nested/file8.txt']
+  exclude_files ['file4.txt', 'test_archive*.*', 'extract_*test', 'nested/file8.txt', '*.exe']
 end
 
 zipr_archive "Extract #{test_folder}/test_archive.zip" do
@@ -77,6 +78,7 @@ zipr_sfx "#{test_folder}/test_sfx.exe" do
   action :create
   installer_title 'Test Installer'
   installer_executable 'msiexec /quiet /package testpackage.msi'
-  target_files "#{test_folder}/extract_7z_test/**/*"
-  source_folder "#{test_folder}/extract_7z_test"
+  target_files "#{test_folder}/**/*"
+  source_folder test_folder
+  exclude_files ['extract_*test', 'test_sfx.exe']
 end
