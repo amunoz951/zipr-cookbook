@@ -3,11 +3,10 @@
 # Recipe:: default
 #
 
-build_essential 'Install required dev binaries' do
-  action :install
-  compile_time true
-  not_if { node['platform'] == 'windows' }
-end
+package 'gcc-c++' do
+  action :nothing
+  only_if { node['platform_family'] == 'rhel' }
+end.run_action(:install)
 
 chef_gem 'seven_zip_ruby' do
   action :install
