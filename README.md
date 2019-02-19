@@ -2,7 +2,7 @@
 
 [![Cookbook Version](https://img.shields.io/badge/cookbook-2.0.4-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
 
-Provides idempotent resources and helper methods for extracting and compressing files
+Provides idempotent resources and helper methods for extracting and compressing zip and 7-zip files
 
 ## Contents
 
@@ -34,7 +34,7 @@ Provides idempotent resources and helper methods for extracting and compressing 
 
 ### Cookbooks
 
-- seven_zip
+- no cookbook dependencies
 
 ## Attributes
 

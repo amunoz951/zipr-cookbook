@@ -249,3 +249,4 @@ module ZiprHelper
 end
 
 Chef::Resource.send(:include, ZiprHelper)
+Chef::Provider.send(:include, ZiprHelper)
