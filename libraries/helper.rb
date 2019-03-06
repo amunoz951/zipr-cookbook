@@ -42,6 +42,7 @@ module ZiprHelper
 
   # options: { exclude_files: [], exclude_unless_missing: [], overwrite: true, password: nil }
   def extract_seven_zip(archive_path, destination_folder, changed_files, options, archive_checksums: nil)
+    include_recipe 'zipr::seven_zip_ruby'
     require 'seven_zip_ruby'
 
     archive_checksums = {} if archive_checksums.nil?
@@ -134,6 +135,7 @@ module ZiprHelper
   end
 
   def add_to_seven_zip(archive_path, source_folder, source_files, archive_checksums: nil)
+    include_recipe 'zipr::seven_zip_ruby'
     require 'seven_zip_ruby'
 
     archive_checksums = {} if archive_checksums.nil?
