@@ -11,6 +11,6 @@ end.run_action(:install)
 chef_gem 'seven_zip_ruby' do
   action :install
   compile_time true
-  version '1.2.5'
-  source "#{Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/seven_zip_ruby-1.2.5.gem"
+  version '1.2.4'
+  source "#{Chef::Config[:file_cache_path]}/cookbooks/zipr/files/default/seven_zip_ruby-1.2.4.gem"
 end
