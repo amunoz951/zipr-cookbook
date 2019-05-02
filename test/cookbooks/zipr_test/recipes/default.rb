@@ -38,6 +38,16 @@ zipr_archive "Create if missing: #{test_folder}/test_archive.zip" do
   exclude_files "*.exe"
 end
 
+# This should create the archive as it doesn't already exist and the action is :create_if_missing - file4.txt should not be added to zip
+zipr_archive "Create if missing: #{test_folder}/test_archive_cim.zip" do
+  action :create_if_missing
+  archive_path "#{test_folder}/test_archive.zip"
+  archive_type :zip
+  source_folder test_folder
+  target_files Dir.glob("#{test_folder}/**/*")
+  exclude_files "*.exe"
+end
+
 # This should add nested folder to the existing archive created earlier
 zipr_archive 'Add nested folder' do
   action :create
