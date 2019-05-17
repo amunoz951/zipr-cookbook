@@ -144,8 +144,11 @@ module ZiprHelper
         Chef::Log.info("Compressing to #{archive_path}...")
         source_files.each do |source_file|
           relative_path = source_file.tr('\\', '/')
+          Chef::Log.debug "Source file using forward slashes: #{relative_path}"
+          Chef::Log.debug "Source folder using forward slashes: #{source_folder.tr('\\', '/')}"
           relative_path.slice!(source_folder.tr('\\', '/'))
           relative_path = relative_path.reverse.chomp('/').reverse
+          Chef::Log.debug "Relative path: #{relative_path}"
           seven_zip_options = { as: relative_path }
           Chef::Log.info("Compressing #{relative_path}...")
           if ::File.directory?(source_file)
