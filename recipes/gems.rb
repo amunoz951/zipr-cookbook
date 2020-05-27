@@ -21,7 +21,7 @@ required_gems = {
   'logger' => '1.4.2', # dependency of easy_io
   'open3' => '0.1.0', # dependency of easy_io
   'easy_format' => '0.2.0', # dependency of easy_io gem
-  'easy_io' => '0.4.1', # dependency of zipr gem
+  'easy_io' => '0.4.2', # dependency of zipr gem
   'zipr' => '0.2.2',
 }
 required_gems.each do |gem_name, gem_version|

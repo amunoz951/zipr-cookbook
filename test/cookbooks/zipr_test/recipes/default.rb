@@ -2,9 +2,7 @@
 # Cookbook:: zipr_test
 # Recipe:: default
 #
-# Copyright:: 2018, Alex Munoz, All Rights Reserved.
-
-include_recipe 'zipr::default'
+# Copyright:: 2018-2020, Alex Munoz, All Rights Reserved.
 
 Chef::Log.info 'Creating test files'
 test_folder = node.platform?('windows') ? 'C:/zipr_test' : '/zipr_test'
