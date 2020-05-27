@@ -149,6 +149,7 @@ module ZiprHelper
           relative_path.slice!(source_folder.tr('\\', '/'))
           relative_path = relative_path.reverse.chomp('/').reverse
           Chef::Log.debug "Relative path: #{relative_path}"
+          raise "Source file (#{source_file}) does not contain the source folder (#{source_folder}). This may be due to inconsistent capitalization." if relative_path == source_file.tr('\\', '/')
           seven_zip_options = { as: relative_path }
           Chef::Log.info("Compressing #{relative_path}...")
           if ::File.directory?(source_file)
