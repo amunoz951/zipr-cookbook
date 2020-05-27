@@ -9,7 +9,7 @@ package 'gcc-c++' do
 end.run_action(:install)
 
 chef_gem 'seven_zip_ruby_am' do
-  action :install
+  action :upgrade
   compile_time true
-  version '1.2.5.1'
+  version '~> 1.2.5.4'
 end

@@ -1,5 +1,7 @@
 resource_name :zipr_archive
 
+# Note: You may use a :before notification to download the archive before extraction. You may then delete it afterwards and it will stay idempotent.
+
 # Common properties
 property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
@@ -19,7 +21,6 @@ property :password, [String, nil], default: nil # Password for archive
 default_action :extract
 
 action :extract do
-  require 'digest'
   new_resource.sensitive = true unless new_resource.password.nil?
   standardize_properties(new_resource)
   raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
@@ -35,30 +36,18 @@ action :extract do
               archive_type: new_resource.archive_type,
             }
 
-  changed_files, archive_checksums = changed_files_for_extract(new_resource.archive_path,
-                                                               checksum_file,
-                                                               new_resource.destination_folder,
-                                                               options)
+  has_before_notifications = new_resource.before_notifications.empty?
+  checksum_path = (has_before_notifications || ::File.exist?(new_resource.archive_path)) ? checksum_file : nil
+  changed_files, checksums = Zipr::Archive.determine_files_to_extract(new_resource.archive_path, new_resource.destination_folder, options: options, checksum_file: checksum_path)
   return if !changed_files.nil? && changed_files.empty?
-
-  include_recipe 'zipr::default'
 
   converge_if_changed do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
 
-    directory new_resource.destination_folder do
-      action :create
-      recursive true
-    end
-
-    calculated_checksums = extract_archive(new_resource.archive_path,
-                                           new_resource.destination_folder,
-                                           changed_files,
-                                           options,
-                                           archive_checksums: archive_checksums)
+    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums)
 
     zipr_checksums_file checksum_file do
-      archive_checksums calculated_checksums
+      checksums checksums
     end
 
     file "delete #{new_resource.archive_path}" do
@@ -70,6 +59,7 @@ action :extract do
 end
 
 action :create do
+  new_resource.sensitive = true unless new_resource.password.nil?
   standardize_properties(new_resource)
 
   options = {
@@ -78,26 +68,16 @@ action :create do
               archive_type: new_resource.archive_type,
             }
 
-  changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,
-                                                                      new_resource.checksum_file,
-                                                                      new_resource.source_folder,
-                                                                      new_resource.target_files,
-                                                                      options)
+  changed_files, checksums = Zipr::Archive.determine_files_to_add(new_resource.archive_path, new_resource.source_folder, files_to_check: new_resource.target_files, options: options)
   return if changed_files.empty?
 
-  include_recipe 'zipr::default'
-
   converge_if_changed do
-    calculated_checksums = add_to_archive(new_resource.archive_path,
-                                          new_resource.source_folder,
-                                          changed_files,
-                                          options,
-                                          archive_checksums: archive_checksums)
+    _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
 
     checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
     zipr_checksums_file checksum_file do
-      archive_checksums calculated_checksums
+      checksums checksums
     end
 
     if new_resource.delete_after_processing

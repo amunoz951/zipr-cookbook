@@ -4,6 +4,8 @@
 #
 # Copyright:: 2018, Alex Munoz, All Rights Reserved.
 
+include_recipe 'zipr::default'
+
 Chef::Log.info 'Creating test files'
 test_folder = node.platform?('windows') ? 'C:/zipr_test' : '/zipr_test'
 
