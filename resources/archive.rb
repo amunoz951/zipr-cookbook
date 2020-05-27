@@ -32,7 +32,7 @@ action :extract do
               exclude_unless_missing: new_resource.exclude_unless_missing,
               overwrite: true,
               password: new_resource.password,
-              archive_type: new_resource.archive_type
+              archive_type: new_resource.archive_type,
             }
 
   changed_files, archive_checksums = changed_files_for_extract(new_resource.archive_path,
@@ -71,10 +71,11 @@ end
 
 action :create do
   standardize_properties(new_resource)
+
   options = {
               exclude_files: new_resource.exclude_files,
               exclude_unless_missing: new_resource.exclude_unless_missing,
-              archive_type: new_resource.archive_type
+              archive_type: new_resource.archive_type,
             }
 
   changed_files, archive_checksums = changed_files_for_add_to_archive(new_resource.archive_path,

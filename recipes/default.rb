@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: zipr
+# Cookbook:: zipr
 # Recipe:: default
 #
 

@@ -1,11 +1,11 @@
 #
-# Cookbook Name:: zipr
+# Cookbook:: zipr
 # Recipe:: seven_zip_ruby
 #
 
 package 'gcc-c++' do
   action :nothing
-  only_if { node['platform_family'] == 'rhel' }
+  only_if { node.platform_family?('rhel') }
 end.run_action(:install)
 
 chef_gem 'seven_zip_ruby_am' do

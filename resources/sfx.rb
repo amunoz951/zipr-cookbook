@@ -19,7 +19,7 @@ action :create do
   options = {
               exclude_files: new_resource.exclude_files,
               exclude_unless_missing: [],
-              archive_type: :seven_zip
+              archive_type: :seven_zip,
             }
 
   changed_files = changed_files_for_add_to_archive(new_resource.archive_path,

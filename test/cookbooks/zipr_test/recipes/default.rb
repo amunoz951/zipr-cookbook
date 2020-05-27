@@ -5,7 +5,7 @@
 # Copyright:: 2018, Alex Munoz, All Rights Reserved.
 
 Chef::Log.info 'Creating test files'
-test_folder = node['platform'] == 'windows' ? 'C:/zipr_test' : '/zipr_test'
+test_folder = node.platform?('windows') ? 'C:/zipr_test' : '/zipr_test'
 
 directory "#{test_folder}/nested" do
   action :nothing
@@ -35,7 +35,7 @@ zipr_archive "Create if missing: #{test_folder}/test_archive.zip" do
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/**/*")
-  exclude_files "*.exe"
+  exclude_files '*.exe'
 end
 
 # This should create the archive as it doesn't already exist and the action is :create_if_missing - file4.txt should not be added to zip
@@ -45,7 +45,7 @@ zipr_archive "Create if missing: #{test_folder}/test_archive_cim.zip" do
   archive_type :zip
   source_folder test_folder
   target_files Dir.glob("#{test_folder}/**/*")
-  exclude_files "*.exe"
+  exclude_files '*.exe'
 end
 
 # This should add nested folder to the existing archive created earlier
