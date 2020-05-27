@@ -19,6 +19,8 @@ default_action :create
 action :create do
   standardize_properties(new_resource)
 
+  ::Chef.run_context.include_recipe 'zipr::default'
+
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path)
   checksum_file = "#{checksums_folder}/#{archive_name}-#{archive_path_hash}.json"

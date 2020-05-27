@@ -6,7 +6,7 @@ description 'Provides idempotent compression and extraction resources for zip an
 source_url 'https://github.com/amunoz951/zipr'
 issues_url 'https://github.com/amunoz951/zipr/issues'
 chef_version '>= 12'
-version '3.0.0'
+version '3.0.1'
 
 supports 'windows'
 supports 'centos'
