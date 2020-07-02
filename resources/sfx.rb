@@ -18,8 +18,7 @@ default_action :create
 
 action :create do
   standardize_properties(new_resource)
-
-  ::Chef.run_context.include_recipe 'zipr::default'
+  load_zipr_dependencies(new_resource)
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path)

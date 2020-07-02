@@ -1,6 +1,7 @@
 resource_name :zipr_archive
 
 # Note: You may use a :before notification to download the archive before extraction. You may then delete it afterwards and it will stay idempotent.
+#       If you do use a :before notification, you must include the zipr::dependencies recipe before declaring your resource.
 
 # Common properties
 property :archive_path, String, name_property: true # Compressed file path
@@ -22,10 +23,9 @@ default_action :extract
 
 action :extract do
   new_resource.sensitive = true unless new_resource.password.nil?
-  standardize_properties(new_resource)
   raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
-
-  ::Chef.run_context.include_recipe 'zipr::default'
+  standardize_properties(new_resource)
+  load_zipr_dependencies(new_resource)
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
@@ -42,29 +42,25 @@ action :extract do
   checksum_path = (has_before_notifications || ::File.exist?(new_resource.archive_path)) ? checksum_file : nil
   changed_files, checksums = Zipr::Archive.determine_files_to_extract(new_resource.archive_path, new_resource.destination_folder, options: options, checksum_file: checksum_path)
   return if !changed_files.nil? && changed_files.empty?
+  raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
 
-  converge_if_changed do
-    raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
+  _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums)
 
-    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums)
+  zipr_checksums_file checksum_file do
+    checksums checksums
+  end
 
-    zipr_checksums_file checksum_file do
-      checksums checksums
-    end
-
-    file "delete #{new_resource.archive_path}" do
-      action :delete
-      path new_resource.archive_path
-      only_if { new_resource.delete_after_processing }
-    end
+  file "delete #{new_resource.archive_path}" do
+    action :delete
+    path new_resource.archive_path
+    only_if { new_resource.delete_after_processing }
   end
 end
 
 action :create do
   new_resource.sensitive = true unless new_resource.password.nil?
   standardize_properties(new_resource)
-
-  ::Chef.run_context.include_recipe 'zipr::default'
+  load_zipr_dependencies(new_resource)
 
   options = {
               exclude_files: new_resource.exclude_files,
@@ -75,20 +71,17 @@ action :create do
   changed_files, checksums = Zipr::Archive.determine_files_to_add(new_resource.archive_path, new_resource.source_folder, files_to_check: new_resource.target_files, options: options)
   return if changed_files.empty?
 
-  converge_if_changed do
-    _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
+  _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
+  checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
-    checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
+  zipr_checksums_file checksum_file do
+    checksums checksums
+  end
 
-    zipr_checksums_file checksum_file do
-      checksums checksums
-    end
-
-    if new_resource.delete_after_processing
-      changed_files.each do |changed_file|
-        file changed_file do
-          action :delete
-        end
+  if new_resource.delete_after_processing
+    changed_files.each do |changed_file|
+      file changed_file do
+        action :delete
       end
     end
   end

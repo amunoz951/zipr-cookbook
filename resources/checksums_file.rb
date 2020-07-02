@@ -3,13 +3,10 @@ resource_name :zipr_checksums_file
 # Common properties
 property :checksum_file_path, String, name_property: true # Compressed file path
 property :checksums, Hash, required: true
-# property :temp_folder, String, required: true
 
 default_action :create
 
 action :create do
-  ::Chef.run_context.include_recipe 'zipr::default'
-
   directory ::File.dirname(new_resource.checksum_file_path) do
     action :create
     recursive true
