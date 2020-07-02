@@ -3,4 +3,4 @@
 # Recipe:: default
 #
 
-include_recipe 'zipr::gems'
+include_recipe 'zipr::dependencies'

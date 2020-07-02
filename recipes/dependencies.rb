@@ -1,6 +1,6 @@
 #
 # Cookbook:: zipr
-# Recipe:: gems
+# Recipe:: dependencies
 #
 # Description:: Installs all gems required by this cookbook. Should be included before calling any zipr cookbook resources
 #
@@ -12,11 +12,16 @@ chef_gem 'rubyzip' do
   not_if { Gem::Version.new(Chef::VERSION) >= Gem::Version.new('13.0.0') }
 end
 
-include_recipe 'zipr::seven_zip_ruby'
+# gcc-c++ is required for seven_zip_ruby in centos/rhel
+package 'gcc-c++' do
+  action :nothing
+  only_if { node.platform_family?('rhel') }
+end.run_action(:install)
 
 required_gems = {
+  'seven_zip_ruby_am' => '1.2.5.4', # dependency of zipr gem
   'os' => '1.1.0', # dependency of zipr gem
-  'hashly' => '0.1.0', # dependency of easy_json_config
+  'hashly' => '0.1.1', # dependency of easy_json_config
   'easy_json_config' => '0.3.0', # dependency of easy_io
   'logger' => '1.4.2', # dependency of easy_io
   'open3' => '0.1.0', # dependency of easy_io
