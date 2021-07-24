@@ -7,8 +7,8 @@ resource_name :zipr_archive
 property :archive_path, String, name_property: true # Compressed file path
 property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
 property :checksum_file, [String, nil], default: nil # Specify a custom checksum file path
-property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
-property :exclude_unless_missing, [String, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
+property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
+property :exclude_unless_missing, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
 
 # Compression properties
 property :archive_type, Symbol, default: lazy { |r| r.archive_path[-3..-1] =~ /.7z/i ? :seven_zip : :zip } # :zip, :seven_zip

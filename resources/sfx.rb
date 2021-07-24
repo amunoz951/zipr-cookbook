@@ -1,7 +1,7 @@
 resource_name :zipr_sfx
 
 property :archive_path, String, name_property: true # desired SFX path
-property :exclude_files, [String, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
+property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
 property :target_files, [String, Array], required: true # Dir.glob style wildcards allowed
 property :source_folder, String, default: lazy { |r| ::File.dirname(r.target_files.first) }
 property :temp_subfolder, String # Optional cache subfolder where SFX will be generated
