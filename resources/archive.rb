@@ -18,6 +18,7 @@ property :source_folder, String, default: ''
 # Extraction properties
 property :destination_folder, String
 property :password, [String, nil], default: nil # Password for archive
+property :exclude_unless_archive_changed, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted unless the file in the archive has changed or the destination file is missing
 
 default_action :extract
 
@@ -33,6 +34,7 @@ action :extract do
   options = {
               exclude_files: new_resource.exclude_files,
               exclude_unless_missing: new_resource.exclude_unless_missing,
+              exclude_unless_archive_changed: new_resource.exclude_unless_archive_changed,
               overwrite: true,
               password: new_resource.password,
               archive_type: new_resource.archive_type,
@@ -107,7 +109,9 @@ end
 def standardize_properties(new_resource)
   new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String) || new_resource.exclude_files.is_a?(Regexp)
   new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String) || new_resource.exclude_unless_missing.is_a?(Regexp)
+  new_resource.exclude_unless_archive_changed = [new_resource.exclude_unless_archive_changed] if new_resource.exclude_unless_archive_changed.is_a?(String) || new_resource.exclude_unless_archive_changed.is_a?(Regexp)
   new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String) || new_resource.target_files.is_a?(Regexp)
   new_resource.exclude_files = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_files)
   new_resource.exclude_unless_missing = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_unless_missing)
+  new_resource.exclude_unless_archive_changed = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_unless_archive_changed)
 end
