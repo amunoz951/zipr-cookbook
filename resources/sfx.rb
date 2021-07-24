@@ -18,11 +18,11 @@ default_action :create
 
 action :create do
   standardize_properties(new_resource)
-  load_zipr_dependencies(new_resource)
+  ZiprHelper.load_zipr_dependencies(new_resource)
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path)
-  checksum_file = "#{checksums_folder}/#{archive_name}-#{archive_path_hash}.json"
+  checksum_file = "#{ZiprHelper.checksums_folder}/#{archive_name}-#{archive_path_hash}.json"
   options = {
               exclude_files: new_resource.exclude_files,
               archive_type: :seven_zip,
