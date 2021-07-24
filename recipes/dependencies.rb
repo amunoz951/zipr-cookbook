@@ -12,7 +12,7 @@ package 'gcc-c++' do
 end.run_action(:install)
 
 required_gems = {
-  'seven_zip_ruby_am' => '1.2.5.4', # dependency of zipr gem
+  'seven_zip_ruby' => '1.3.0', # dependency of zipr gem
   'rubyzip' => '2.3.0', # dependency of zipr gem
   'os' => '1.1.0', # dependency of zipr gem
   'hashly' => '0.1.3', # dependency of easy_json_config
@@ -21,7 +21,7 @@ required_gems = {
   'open3' => '0.1.0', # dependency of easy_io
   'easy_format' => '0.2.0', # dependency of easy_io gem
   'easy_io' => '0.4.2', # dependency of zipr gem
-  'zipr' => '0.2.3',
+  'zipr' => '0.3.2',
 }
 required_gems.each do |gem_name, gem_version|
   chef_gem gem_name do
