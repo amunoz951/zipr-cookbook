@@ -12,7 +12,7 @@ property :exclude_unless_missing, [String, Regexp, Array], default: [] # Array o
 
 # Compression properties
 property :archive_type, Symbol, default: lazy { |r| r.archive_path[-3..-1] =~ /.7z/i ? :seven_zip : :zip } # :zip, :seven_zip
-property :target_files, [String, Array], default: [] # Dir.glob wildcards allowed
+property :target_files, [String, Regexp, Array], default: [] # Dir.glob wildcards allowed
 property :source_folder, String, default: ''
 
 # Extraction properties
@@ -75,7 +75,7 @@ action :create do
 
   converge_if_changed do # so that why-run doesn't run this code when using a :before notification
     _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
-    checksum_file = new_resource.checksum_file || create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
+    checksum_file = new_resource.checksum_file || ZiprHelper.create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
     zipr_checksums_file checksum_file do
       checksums checksums
@@ -105,9 +105,9 @@ action :create_if_missing do
 end
 
 def standardize_properties(new_resource)
-  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String)
-  new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String)
-  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String)
-  new_resource.exclude_files = flattened_paths(new_resource.source_folder, new_resource.exclude_files)
-  new_resource.exclude_unless_missing = flattened_paths(new_resource.source_folder, new_resource.exclude_unless_missing)
+  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String) || new_resource.exclude_files.is_a?(Regexp)
+  new_resource.exclude_unless_missing = [new_resource.exclude_unless_missing] if new_resource.exclude_unless_missing.is_a?(String) || new_resource.exclude_unless_missing.is_a?(Regexp)
+  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String) || new_resource.target_files.is_a?(Regexp)
+  new_resource.exclude_files = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_files)
+  new_resource.exclude_unless_missing = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_unless_missing)
 end

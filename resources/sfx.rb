@@ -2,7 +2,7 @@ resource_name :zipr_sfx
 
 property :archive_path, String, name_property: true # desired SFX path
 property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
-property :target_files, [String, Array], required: true # Dir.glob style wildcards allowed
+property :target_files, [String, Regexp, Array], required: true # Dir.glob style wildcards allowed
 property :source_folder, String, default: lazy { |r| ::File.dirname(r.target_files.first) }
 property :temp_subfolder, String # Optional cache subfolder where SFX will be generated
 
@@ -70,8 +70,8 @@ action :create_if_missing do
 end
 
 def standardize_properties(new_resource)
-  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String)
-  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String)
+  new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String) || new_resource.target_files.is_a?(Regexp)
+  new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String) || new_resource.exclude_files.is_a?(Regexp)
   new_resource.exclude_files = flattened_paths(new_resource.source_folder, new_resource.exclude_files)
   new_resource.install_path = to_double_backslashes(new_resource.install_path, with_trailing_backslashes: true)
   new_resource.installer_executable = to_double_backslashes(new_resource.installer_executable)
