@@ -25,11 +25,11 @@ action :extract do
   new_resource.sensitive = true unless new_resource.password.nil?
   raise 'destination_folder is a required property for action: :extract' if new_resource.destination_folder.nil?
   standardize_properties(new_resource)
-  load_zipr_dependencies(new_resource)
+  ZiprHelper.load_zipr_dependencies(new_resource)
 
   archive_name = ::File.basename(new_resource.archive_path)
   archive_path_hash = ::Digest::SHA256.hexdigest(new_resource.archive_path + new_resource.destination_folder)
-  checksum_file = new_resource.checksum_file || "#{checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
+  checksum_file = new_resource.checksum_file || "#{ZiprHelper.checksums_folder}/#{archive_name}_#{archive_path_hash}.json"
   options = {
               exclude_files: new_resource.exclude_files,
               exclude_unless_missing: new_resource.exclude_unless_missing,
@@ -62,7 +62,7 @@ end
 action :create do
   new_resource.sensitive = true unless new_resource.password.nil?
   standardize_properties(new_resource)
-  load_zipr_dependencies(new_resource)
+  ZiprHelper.load_zipr_dependencies(new_resource)
 
   options = {
               exclude_files: new_resource.exclude_files,
