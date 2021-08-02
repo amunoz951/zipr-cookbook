@@ -49,14 +49,14 @@ action :extract do
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
     _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums)
 
-    zipr_checksums_file checksum_file do
-      checksums checksums
-    end
-
     file "delete #{new_resource.archive_path}" do
       action :delete
       path new_resource.archive_path
       only_if { new_resource.delete_after_processing }
+    end
+
+    zipr_checksums_file checksum_file do
+      checksums checksums
     end
   end
 end
@@ -79,16 +79,16 @@ action :create do
     _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
     checksum_file = new_resource.checksum_file || ZiprHelper.create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
 
-    zipr_checksums_file checksum_file do
-      checksums checksums
-    end
-
     if new_resource.delete_after_processing
       changed_files.each do |changed_file|
         file changed_file do
           action :delete
         end
       end
+    end
+
+    zipr_checksums_file checksum_file do
+      checksums checksums
     end
   end
 end
