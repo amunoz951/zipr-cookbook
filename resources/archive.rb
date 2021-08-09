@@ -47,7 +47,7 @@ action :extract do
 
   converge_if_changed do # so that why-run doesn't run this code when using a :before notification
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
-    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums)
+    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums, checksum_file: checksum_path)
 
     file "delete #{new_resource.archive_path}" do
       action :delete
