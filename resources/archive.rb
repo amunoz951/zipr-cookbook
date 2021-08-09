@@ -72,12 +72,12 @@ action :create do
               archive_type: new_resource.archive_type,
             }
 
-  changed_files, checksums = Zipr::Archive.determine_files_to_add(new_resource.archive_path, new_resource.source_folder, files_to_check: new_resource.target_files, options: options)
+  checksum_file = new_resource.checksum_file || ZiprHelper.create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
+  changed_files, checksums = Zipr::Archive.determine_files_to_add(new_resource.archive_path, new_resource.source_folder, files_to_check: new_resource.target_files, options: options, checksum_file: checksum_file)
   return if changed_files.empty?
 
   converge_if_changed do # so that why-run doesn't run this code when using a :before notification
-    _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums)
-    checksum_file = new_resource.checksum_file || ZiprHelper.create_action_checksum_file(new_resource.archive_path, new_resource.target_files)
+    _checksum_path, checksums = Zipr::Archive.add(new_resource.archive_path, new_resource.source_folder, files_to_add: changed_files, options: options, checksums: checksums, checksum_file: checksum_file)
 
     if new_resource.delete_after_processing
       changed_files.each do |changed_file|
