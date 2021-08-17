@@ -40,14 +40,12 @@ action :extract do
               archive_type: new_resource.archive_type,
             }
 
-  has_before_notifications = new_resource.before_notifications.empty?
-  checksum_path = (has_before_notifications || ::File.exist?(new_resource.archive_path)) ? checksum_file : nil
-  changed_files, checksums = Zipr::Archive.determine_files_to_extract(new_resource.archive_path, new_resource.destination_folder, options: options, checksum_file: checksum_path)
+  changed_files, checksums = Zipr::Archive.determine_files_to_extract(new_resource.archive_path, new_resource.destination_folder, options: options, checksum_file: checksum_file)
   return if !changed_files.nil? && changed_files.empty?
 
   converge_if_changed do # so that why-run doesn't run this code when using a :before notification
     raise "Failed to extract archive because the archive does not exist! Archive path: #{new_resource.archive_path}" unless ::File.exist?(new_resource.archive_path)
-    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums, checksum_file: checksum_path)
+    _checksum_path, checksums = Zipr::Archive.extract(new_resource.archive_path, new_resource.destination_folder, files_to_extract: changed_files, options: options, checksums: checksums, checksum_file: checksum_file)
 
     file "delete #{new_resource.archive_path}" do
       action :delete
