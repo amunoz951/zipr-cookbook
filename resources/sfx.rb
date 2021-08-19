@@ -72,7 +72,7 @@ end
 def standardize_properties(new_resource)
   new_resource.target_files = [new_resource.target_files] if new_resource.target_files.is_a?(String) || new_resource.target_files.is_a?(Regexp)
   new_resource.exclude_files = [new_resource.exclude_files] if new_resource.exclude_files.is_a?(String) || new_resource.exclude_files.is_a?(Regexp)
-  new_resource.exclude_files = flattened_paths(new_resource.source_folder, new_resource.exclude_files)
+  new_resource.exclude_files = Zipr.flattened_paths(new_resource.source_folder, new_resource.exclude_files)
   new_resource.install_path = to_double_backslashes(new_resource.install_path, with_trailing_backslashes: true)
   new_resource.installer_executable = to_double_backslashes(new_resource.installer_executable)
 end
