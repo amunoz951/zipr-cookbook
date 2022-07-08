@@ -1,4 +1,4 @@
-resource_name :zipr_sfx
+unified_mode true
 
 property :archive_path, String, name_property: true # desired SFX path
 property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be added to the SFX
@@ -10,9 +10,9 @@ property :temp_subfolder, String # Optional cache subfolder where SFX will be ge
 property :installer_title, String # Title of SFX installer window
 property :installer_executable, String # executable to launch after extraction
 property :install_path, String, default: './' # Optionally specify where the files should be extracted to permanently
-property :delete_install_path, [TrueClass, FalseClass], default: false # Optionally delete files extracted to install_path after installer_executable exits
+property :delete_install_path, [true, false], default: false # Optionally delete files extracted to install_path after installer_executable exits
 property :begin_prompt, String # Optionally add a prompt when the SFX is run before the installer executable is launched.
-property :show_progress, [TrueClass, FalseClass], default: false # Optionally show extraction progress
+property :show_progress, [true, false], default: false # Optionally show extraction progress
 
 default_action :create
 

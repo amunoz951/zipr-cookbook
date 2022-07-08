@@ -1,4 +1,4 @@
-resource_name :zipr_checksums_file
+unified_mode true
 
 # Common properties
 property :checksum_file_path, String, name_property: true # Compressed file path

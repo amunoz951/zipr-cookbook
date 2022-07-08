@@ -1,12 +1,12 @@
-resource_name :zipr_archive
+unified_mode true
 
-# Note: You may use a :before notification to download the archive before extraction. You may then delete it afterwards and it will stay idempotent.
+# NOTE: You may use a :before notification to download the archive before extraction. You may then delete it afterwards and it will stay idempotent.
 #       If you do use a :before notification, you must include the zipr::dependencies recipe before declaring your resource.
 
 # Common properties
 property :archive_path, String, name_property: true # Compressed file path
-property :delete_after_processing, [TrueClass, FalseClass], default: false # Delete source files or source archive after processing
-property :checksum_file, [String, nil], default: nil # Specify a custom checksum file path
+property :delete_after_processing, [true, false], default: false # Delete source files or source archive after processing
+property :checksum_file, [String, nil] # Specify a custom checksum file path
 property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted or archived
 property :exclude_unless_missing, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted or archived if they already exist
 
@@ -17,7 +17,7 @@ property :source_folder, String, default: ''
 
 # Extraction properties
 property :destination_folder, String
-property :password, [String, nil], default: nil # Password for archive
+property :password, [String, nil] # Password for archive
 property :exclude_unless_archive_changed, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be extracted unless the file in the archive has changed or the destination file is missing
 
 default_action :extract
