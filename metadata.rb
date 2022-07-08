@@ -5,8 +5,8 @@ license 'Apache-2.0'
 description 'Provides idempotent compression and extraction resources for zip and 7-zip files'
 source_url 'https://github.com/amunoz951/zipr'
 issues_url 'https://github.com/amunoz951/zipr/issues'
-chef_version '>= 12'
-version '5.0.1'
+chef_version '>= 14.14'
+version '5.0.2'
 
 supports 'windows'
 supports 'centos' # Chef-client version '>= 14.14' appears to break building the native gem extensions for seven_zip_ruby
