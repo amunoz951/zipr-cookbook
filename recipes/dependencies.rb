@@ -16,12 +16,13 @@ required_gems = {
   'rubyzip' => '2.3.0', # dependency of zipr gem
   'os' => '1.1.0', # dependency of zipr gem
   'hashly' => '0.2.0', # dependency of easy_json_config
-  'easy_json_config' => '0.3.0', # dependency of easy_io
+  'easy_json_config' => '0.4.0', # dependency of easy_io
   'logger' => '1.4.2', # dependency of easy_io
   'open3' => '0.1.0', # dependency of easy_io
   'easy_format' => '0.2.0', # dependency of easy_io gem
-  'easy_io' => '0.4.2', # dependency of zipr gem
-  'zipr' => '0.3.2',
+  'sys-filesystem' => '1.4.3', # dependency of easy_io gem
+  'easy_io' => '0.5.0', # dependency of zipr gem
+  'zipr' => '0.4.0',
 }
 required_gems.each do |gem_name, gem_version|
   chef_gem gem_name do
