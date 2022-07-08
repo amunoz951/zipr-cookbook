@@ -1,6 +1,6 @@
 # zipr Cookbook
 
-[![Cookbook Version](https://img.shields.io/badge/cookbook-4.1.1-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
+[![Cookbook Version](https://img.shields.io/badge/cookbook-5.0.1-green.svg)](https://supermarket.chef.io/cookbooks/zipr)
 
 Provides idempotent resources and helper methods for extracting and compressing zip and 7-zip files
 
@@ -138,7 +138,7 @@ Installs seven_zip_ruby and rubyzip gems
 - Author:: Alex Munoz ([amunoz951@gmail.com](mailto:amunoz951@gmail.com))
 
 ```text
-Copyright 2016-2018, Alex Munoz.
+Copyright 2016-2022, Alex Munoz.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
