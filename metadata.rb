@@ -6,7 +6,7 @@ description 'Provides idempotent compression and extraction resources for zip an
 source_url 'https://github.com/amunoz951/zipr'
 issues_url 'https://github.com/amunoz951/zipr/issues'
 chef_version '>= 12'
-version '4.1.1'
+version '5.0.0'
 
 supports 'windows'
 supports 'centos' # Chef-client version '>= 14.14' appears to break building the native gem extensions for seven_zip_ruby
