@@ -1,4 +1,4 @@
-unified_mode true
+unified_mode true if respond_to?(:unified_mode)
 
 property :archive_path, String, name_property: true # desired SFX path
 property :exclude_files, [String, Regexp, Array], default: [] # Array of relative_paths for files that should not be added to the SFX

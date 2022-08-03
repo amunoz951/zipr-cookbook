@@ -1,4 +1,4 @@
-unified_mode true
+unified_mode true if respond_to?(:unified_mode)
 
 # Common properties
 property :checksum_file_path, String, name_property: true # Compressed file path

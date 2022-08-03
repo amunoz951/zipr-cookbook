@@ -1,4 +1,4 @@
-unified_mode true
+unified_mode true if respond_to?(:unified_mode)
 
 # NOTE: You may use a :before notification to download the archive before extraction. You may then delete it afterwards and it will stay idempotent.
 #       If you do use a :before notification, you must include the zipr::dependencies recipe before declaring your resource.
