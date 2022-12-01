@@ -5,11 +5,21 @@
 # Description:: Installs all gems required by this cookbook. Should be included before calling any zipr cookbook resources
 #
 
-# gcc-c++ is required for seven_zip_ruby in centos/rhel
-package 'gcc-c++' do
-  action :nothing
-  only_if { node.platform_family?('rhel') }
-end.run_action(:install)
+if node.platform_family?('rhel')
+  # gcc-c++ is required for seven_zip_ruby in centos/rhel
+  package 'gcc-c++' do
+    action :nothing
+    source node['zipr']['gcc-c++']['source']
+  end.run_action(:install)
+
+  # binutils needs an update when centos is below 7.8
+  package 'binutils' do
+    action :nothing
+    version '2.27'
+    source node['zipr']['binutils']['source']
+    only_if { platform?('centos') && ::Gem::Version.new(node['platform_version']) < ::Gem::Version.new('7.8') }
+  end.run_action(:install)
+end
 
 required_gems = {
   'seven_zip_ruby' => '1.3.0', # dependency of zipr gem
