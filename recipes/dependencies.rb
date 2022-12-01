@@ -21,8 +21,8 @@ required_gems = {
   'open3' => '0.1.0', # dependency of easy_io
   'easy_format' => '0.2.0', # dependency of easy_io gem
   'sys-filesystem' => '1.4.3', # dependency of easy_io gem
-  'easy_io' => '0.5.0', # dependency of zipr gem
-  'zipr' => '0.4.0',
+  'easy_io' => '0.6.0', # dependency of zipr gem
+  'zipr' => '0.4.1',
 }
 required_gems.each do |gem_name, gem_version|
   chef_gem gem_name do
